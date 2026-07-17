@@ -136,7 +136,7 @@ and separately reviewed BibleAquifer correction evidence:
 
 ```bash
 python3 scripts/build_recall_overlay.py \
-  --canonical /path/to/enriched-bsb.jsonl \
+  --canonical data/bsb.jsonl \
   --canonical-topics /path/to/canonical-topics.browser.json \
   --topic-verse-rankings /path/to/topic-verse-rankings.browser.json \
   --study-bible-db /path/to/study_bible.db \
@@ -218,7 +218,8 @@ For the evidence and rejected alternatives, see:
 
 - [architecture decision log](./docs/adr/README.md)
 - [generalization resolution v3](./eval/generalization-resolution-v3.md)
-- [retrieval method trade-offs v2](./eval/method-tradeoffs-v2.md)
+- [retrieval method trade-offs v3](./eval/method-tradeoffs-v3.md) (Tantivy, FlexSearch, plain semantic + internal profiles)
+- [retrieval method trade-offs v2](./eval/method-tradeoffs-v2.md) (internal pack ablation only)
 - [overfitting audit](./eval/overfit-audit-v1.md)
 - [evaluation contract](./eval/README.md)
 - [engine design](./DESIGN.md)

@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
-"""Normalize Arweave / selah-tools BSB JSONL into packer input.
+"""Normalize Arweave / selah-tools BSB JSONL into packer and overlay input.
 
-Input lines may include ref/book/chapter/verseNum/text (and optional events/entities).
-Output lines are {"ref": "Genesis 1:1", "text": "..."} with display refs for eval gold.
+Input lines may include ref/book/chapter/verseNum/text (and optional events/
+entities). Output lines always carry display refs for eval gold:
+
+  {"ref": "Genesis 1:1", "text": "..."}
+
+When the source supplies a non-empty ``events`` string array, it is preserved
+verbatim (empty strings dropped). The base packer still indexes only ref/text;
+``build_recall_overlay.py`` reads the same file for ranked BSB event concepts.
 """
 
 from __future__ import annotations
@@ -28,6 +34,20 @@ def display_ref(row: dict) -> str:
     return ref
 
 
+def normalize_events(row: dict, line_no: int) -> list[str] | None:
+    """Return a cleaned events list, or None when the field is absent/empty."""
+
+    if "events" not in row:
+        return None
+    raw = row.get("events")
+    if raw is None:
+        return None
+    if not isinstance(raw, list) or not all(isinstance(event, str) for event in raw):
+        raise ValueError(f"line {line_no}: events must be a string array")
+    events = [event.strip() for event in raw if event.strip()]
+    return events or None
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--input", "-i", required=True, type=Path)
@@ -36,6 +56,7 @@ def main() -> int:
 
     books: set[str] = set()
     n = 0
+    with_events = 0
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.input.open(encoding="utf-8") as fin, args.output.open(
         "w", encoding="utf-8"
@@ -54,11 +75,23 @@ def main() -> int:
                 print(f"line {line_no}: missing text", file=sys.stderr)
                 return 1
             ref = display_ref(row)
-            fout.write(json.dumps({"ref": ref, "text": text}, ensure_ascii=False) + "\n")
+            try:
+                events = normalize_events(row, line_no)
+            except ValueError as error:
+                print(error, file=sys.stderr)
+                return 1
+            record: dict = {"ref": ref, "text": text}
+            if events is not None:
+                record["events"] = events
+                with_events += 1
+            fout.write(json.dumps(record, ensure_ascii=False) + "\n")
             n += 1
             books.add(ref.split()[0] if ref else "")
 
-    print(f"wrote {n} verses, ~{len(books)} book tokens → {args.output}")
+    print(
+        f"wrote {n} verses ({with_events} with events), "
+        f"~{len(books)} book tokens → {args.output}"
+    )
     return 0
 
 

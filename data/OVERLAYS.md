@@ -25,7 +25,7 @@ BSB phrase outranks alternate-only evidence on collisions.
 
 ```bash
 python3 scripts/build_recall_overlay.py \
-  --canonical /path/to/enriched-bsb.jsonl \
+  --canonical data/bsb.jsonl \
   --canonical-topics /path/to/canonical-topics.browser.json \
   --topic-verse-rankings /path/to/topic-verse-rankings.browser.json \
   --study-bible-db /path/to/study_bible.db \
@@ -34,10 +34,12 @@ python3 scripts/build_recall_overlay.py \
   --output /tmp/recall-overlay.jsonl
 ```
 
-Use the enriched BSB source shown above when generating event concepts. The
-committed `data/bsb.jsonl` deliberately contains only display refs and text; it
-is accepted for Selah topics and alternate alignment, but it
-cannot emit source-event concepts after those annotations have been stripped.
+`--canonical` should be the event-bearing BSB JSONL (`data/bsb.jsonl` after
+`ingest_bsb.py`, or the upstream enriched export). Display-only JSONL without
+an `events` field is still accepted for Selah topics and alternate alignment,
+but it cannot emit ranked BSB event concepts. Study Bible `--study-bible-db`
+adds Theographic people/places/`event_shadow` records; those remain score-zero
+and do not substitute for BSB `events`.
 
 Additional translations use the same argument repeatedly:
 

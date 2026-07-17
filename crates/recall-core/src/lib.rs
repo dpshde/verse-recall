@@ -17,7 +17,7 @@ mod types;
 
 pub use engine::{Engine, QuerySegmentEmbedding};
 pub use error::{CoreError, CoreResult};
-pub use fuse::{fuse_lanes, FuseWeights};
+pub use fuse::{fuse_lanes, stitch_passage_results, FuseWeights};
 pub use lanes::{
     DenseLane, DenseMetadata, DenseTableRole, Lane, LaneHit, LaneId, LaneScores, PackedExpandLane,
     PackedExpansionQuery, PackedLexicalLane, PassageDenseLane, PassageDenseMetadata, RecallOverlay,

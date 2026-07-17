@@ -210,8 +210,431 @@ pub fn fuse_lanes(
             .unwrap_or(core::cmp::Ordering::Equal)
             .then_with(|| a.verse_index.cmp(&b.verse_index))
     });
+    // Prefer one multi-verse answer over several single-verse slots that land
+    // in the same structured passage, then fill top_k after collapse.
+    results = stitch_passage_results(results, verses);
     results.truncate(opts.top_k.max(1));
     results
+}
+
+/// Maximum canonical verses that may be concatenated into one display string.
+///
+/// Long discourse ranges (Sermon on the Mount, multi-chapter events) keep the
+/// anchor verse text and the structured `passages` field only. Short lists and
+/// short story units are better as one stitched passage answer.
+const MAX_STITCH_VERSES: usize = 16;
+const MAX_STITCH_CHARS: usize = 3_000;
+/// Contiguous Related hits may form a passage only when scores stay near the
+/// cluster head. Exact Recovered quotes never enter this path.
+const CONTIGUOUS_SCORE_RATIO: f32 = 0.85;
+
+/// Collapse same-passage duplicates and stitch short multi-verse answers.
+///
+/// This is a query-independent presentation pass:
+/// 1. Results that share an overlapping multi-verse structured range become
+///    one answer (highest score wins; evidence merges).
+/// 2. Contiguous same-chapter `Related` hits without a Recovered claim may
+///    form a short passage when they rank as a unit.
+/// 3. Short multi-verse ranges replace single-verse display text with the
+///    concatenated BSB passage; long ranges stay anchor-text + `passages`.
+pub fn stitch_passage_results(
+    results: Vec<SearchResult>,
+    verses: &[Verse],
+) -> Vec<SearchResult> {
+    if results.len() < 2 && results.iter().all(|result| {
+        primary_multi_verse_range(result)
+            .and_then(|range| passage_span_len(verses, range))
+            .is_none_or(|len| len <= 1)
+    }) {
+        return results
+            .into_iter()
+            .map(|result| maybe_stitch_result_text(result, verses))
+            .collect();
+    }
+
+    let reference_indices: HashMap<&str, u32> = verses
+        .iter()
+        .map(|verse| (verse.reference.as_str(), verse.index))
+        .collect();
+
+    let mut results = collapse_shared_passage_results(results, &reference_indices);
+    results = stitch_contiguous_related_results(results, verses);
+    results.sort_by(|a, b| {
+        b.score
+            .partial_cmp(&a.score)
+            .unwrap_or(core::cmp::Ordering::Equal)
+            .then_with(|| a.verse_index.cmp(&b.verse_index))
+    });
+    results
+        .into_iter()
+        .map(|result| maybe_stitch_result_text(result, verses))
+        .collect()
+}
+
+fn collapse_shared_passage_results(
+    results: Vec<SearchResult>,
+    reference_indices: &HashMap<&str, u32>,
+) -> Vec<SearchResult> {
+    if results.len() < 2 {
+        return results;
+    }
+
+    let n = results.len();
+    let mut parent: Vec<usize> = (0..n).collect();
+    for left in 0..n {
+        for right in left + 1..n {
+            if results_share_answer_passage(&results[left], &results[right], reference_indices) {
+                let left_root = uf_root(&mut parent, left);
+                let right_root = uf_root(&mut parent, right);
+                if left_root != right_root {
+                    parent[right_root] = left_root;
+                }
+            }
+        }
+    }
+
+    let mut groups: HashMap<usize, Vec<usize>> = HashMap::new();
+    for index in 0..n {
+        groups
+            .entry(uf_root(&mut parent, index))
+            .or_default()
+            .push(index);
+    }
+
+    let mut collapsed = Vec::with_capacity(groups.len());
+    for mut members in groups.into_values() {
+        members.sort_by(|&left, &right| {
+            results[right]
+                .score
+                .partial_cmp(&results[left].score)
+                .unwrap_or(core::cmp::Ordering::Equal)
+                .then_with(|| results[left].verse_index.cmp(&results[right].verse_index))
+        });
+        let mut winner = results[members[0]].clone();
+        for &member in members.iter().skip(1) {
+            merge_stitched_result(&mut winner, &results[member]);
+        }
+        if members.len() > 1 {
+            push_unique_term(&mut winner.expanded_terms, "passage-stitch:collapsed");
+        }
+        // Prefer the tightest multi-verse range that covers every merged
+        // anchor when several overlapping structured ranges exist.
+        if winner.passages.len() > 1 {
+            retain_preferred_passage(&mut winner, reference_indices);
+        }
+        collapsed.push(winner);
+    }
+    collapsed
+}
+
+fn results_share_answer_passage(
+    left: &SearchResult,
+    right: &SearchResult,
+    reference_indices: &HashMap<&str, u32>,
+) -> bool {
+    if left.verse_index == right.verse_index {
+        return true;
+    }
+    let left_ranges = multi_verse_intervals(left, reference_indices);
+    let right_ranges = multi_verse_intervals(right, reference_indices);
+    if left_ranges.is_empty() || right_ranges.is_empty() {
+        return false;
+    }
+    left_ranges.iter().any(|left_range| {
+        right_ranges
+            .iter()
+            .any(|right_range| intervals_overlap_inclusive(left_range, right_range))
+            || interval_contains_index(left_range, right.verse_index)
+    }) || right_ranges
+        .iter()
+        .any(|right_range| interval_contains_index(right_range, left.verse_index))
+}
+
+fn stitch_contiguous_related_results(
+    results: Vec<SearchResult>,
+    verses: &[Verse],
+) -> Vec<SearchResult> {
+    if results.len() < 2 {
+        return results;
+    }
+
+    // Work in canonical index order for run detection, then restore score order
+    // at the caller. Structured multi-verse answers were already collapsed;
+    // this path only invents short ranges from bare Related neighbors.
+    let mut ordered: Vec<SearchResult> = results;
+    ordered.sort_by_key(|result| result.verse_index);
+
+    let mut output = Vec::with_capacity(ordered.len());
+    let mut index = 0;
+    while index < ordered.len() {
+        if !allows_contiguous_stitch(&ordered[index]) {
+            output.push(ordered[index].clone());
+            index += 1;
+            continue;
+        }
+
+        let mut end = index;
+        while end + 1 < ordered.len()
+            && allows_contiguous_stitch(&ordered[end + 1])
+            && ordered[end + 1].verse_index == ordered[end].verse_index + 1
+            && same_chapter(
+                &verses[ordered[end].verse_index as usize],
+                &verses[ordered[end + 1].verse_index as usize],
+            )
+            && matched_terms_overlap(&ordered[index], &ordered[end + 1])
+            && ordered[end + 1].score
+                >= ordered[index..=end]
+                    .iter()
+                    .map(|result| result.score)
+                    .fold(0.0, f32::max)
+                    * CONTIGUOUS_SCORE_RATIO
+            && (end + 1 - index + 1) <= MAX_STITCH_VERSES
+        {
+            end += 1;
+        }
+
+        if end == index {
+            output.push(ordered[index].clone());
+            index += 1;
+            continue;
+        }
+
+        let mut winner = ordered[index..=end]
+            .iter()
+            .max_by(|left, right| {
+                left.score
+                    .partial_cmp(&right.score)
+                    .unwrap_or(core::cmp::Ordering::Equal)
+                    .then_with(|| right.verse_index.cmp(&left.verse_index))
+            })
+            .cloned()
+            .expect("non-empty contiguous run");
+        for result in &ordered[index..=end] {
+            if result.verse_index != winner.verse_index {
+                merge_stitched_result(&mut winner, result);
+            }
+        }
+        let start_ref = verses[ordered[index].verse_index as usize]
+            .reference
+            .clone();
+        let end_ref = verses[ordered[end].verse_index as usize].reference.clone();
+        let range = PassageRange { start_ref, end_ref };
+        if !winner.passages.iter().any(|passage| passage == &range) {
+            winner.passages.insert(0, range);
+        }
+        push_unique_term(&mut winner.expanded_terms, "passage-stitch:contiguous");
+        output.push(winner);
+        index = end + 1;
+    }
+    output
+}
+
+fn allows_contiguous_stitch(result: &SearchResult) -> bool {
+    // Exact recoveries and explicit misquotes are single-claim answers. Hits
+    // that already carry a multi-verse structured range were handled by
+    // collapse; re-stitching them with bare neighbors invents a narrower
+    // competing range.
+    matches!(result.confidence, Confidence::Related)
+        && primary_multi_verse_range(result).is_none()
+        && !result.matched_terms.is_empty()
+}
+
+fn matched_terms_overlap(left: &SearchResult, right: &SearchResult) -> bool {
+    left.matched_terms
+        .iter()
+        .any(|term| right.matched_terms.iter().any(|other| other == term))
+}
+
+fn maybe_stitch_result_text(mut result: SearchResult, verses: &[Verse]) -> SearchResult {
+    let Some(range) = primary_multi_verse_range(&result).cloned() else {
+        return result;
+    };
+    let Some((start, end)) = passage_index_bounds(verses, &range) else {
+        return result;
+    };
+    let span = (end - start + 1) as usize;
+    if !(2..=MAX_STITCH_VERSES).contains(&span) {
+        return result;
+    }
+    // Dense ±1 window evidence is useful for ranking but is not a claim that
+    // the three-verse neighborhood is the answer unit. Only stitch text when
+    // the multi-verse range came from source structure or an earlier stitch.
+    let may_replace_text = result.lanes.d > 0.0
+        || result.expanded_terms.iter().any(|term| {
+            term.starts_with("event:")
+                || term.starts_with("topic:")
+                || term.starts_with("curated:")
+                || term.starts_with("passage-stitch:")
+                || term.starts_with("semantic-agreement:verse+passage")
+                || term.starts_with("semantic-agreement:dense+topic")
+                || term.starts_with("passage:")
+        });
+    if !may_replace_text {
+        return result;
+    }
+
+    let mut stitched = String::new();
+    for verse in &verses[start as usize..=end as usize] {
+        if !stitched.is_empty() {
+            stitched.push(' ');
+        }
+        stitched.push_str(verse.text.trim());
+        if stitched.len() > MAX_STITCH_CHARS {
+            return result;
+        }
+    }
+    if stitched.is_empty() {
+        return result;
+    }
+    result.text = stitched;
+    push_unique_term(&mut result.expanded_terms, "passage-stitch:text");
+    result
+}
+
+fn primary_multi_verse_range(result: &SearchResult) -> Option<&PassageRange> {
+    result
+        .passages
+        .iter()
+        .find(|passage| passage.start_ref != passage.end_ref)
+}
+
+fn multi_verse_intervals(
+    result: &SearchResult,
+    reference_indices: &HashMap<&str, u32>,
+) -> Vec<(u32, u32)> {
+    result
+        .passages
+        .iter()
+        .filter_map(|passage| {
+            if passage.start_ref == passage.end_ref {
+                return None;
+            }
+            let start = *reference_indices.get(passage.start_ref.as_str())?;
+            let end = *reference_indices.get(passage.end_ref.as_str())?;
+            (start <= end).then_some((start, end))
+        })
+        .collect()
+}
+
+fn passage_index_bounds(verses: &[Verse], range: &PassageRange) -> Option<(u32, u32)> {
+    let start = verses
+        .iter()
+        .find(|verse| verse.reference == range.start_ref)
+        .map(|verse| verse.index)?;
+    let end = verses
+        .iter()
+        .find(|verse| verse.reference == range.end_ref)
+        .map(|verse| verse.index)?;
+    (start <= end).then_some((start, end))
+}
+
+fn passage_span_len(verses: &[Verse], range: &PassageRange) -> Option<usize> {
+    let (start, end) = passage_index_bounds(verses, range)?;
+    Some((end - start + 1) as usize)
+}
+
+fn interval_contains_index(range: &(u32, u32), verse_index: u32) -> bool {
+    range.0 <= verse_index && verse_index <= range.1
+}
+
+fn intervals_overlap_inclusive(left: &(u32, u32), right: &(u32, u32)) -> bool {
+    left.0 <= right.1 && right.0 <= left.1
+}
+
+fn retain_preferred_passage(
+    result: &mut SearchResult,
+    reference_indices: &HashMap<&str, u32>,
+) {
+    let mut multi: Vec<(usize, u32, u32)> = result
+        .passages
+        .iter()
+        .enumerate()
+        .filter_map(|(index, passage)| {
+            if passage.start_ref == passage.end_ref {
+                return None;
+            }
+            let start = *reference_indices.get(passage.start_ref.as_str())?;
+            let end = *reference_indices.get(passage.end_ref.as_str())?;
+            (start <= end).then_some((index, start, end))
+        })
+        .collect();
+    if multi.is_empty() {
+        return;
+    }
+    // Prefer the shortest multi-verse range that still covers every merged
+    // anchor verse index we know about via the winner's index alone is not
+    // enough; keep the shortest range that contains the winner, else the
+    // shortest overall multi-verse range.
+    multi.sort_by_key(|&(_, start, end)| (end - start, start, end));
+    let preferred = multi
+        .iter()
+        .find(|&&(_, start, end)| start <= result.verse_index && result.verse_index <= end)
+        .or_else(|| multi.first())
+        .map(|(index, _, _)| *index);
+    if let Some(preferred) = preferred {
+        let chosen = result.passages[preferred].clone();
+        result.passages.retain(|passage| {
+            passage == &chosen
+                || (passage.start_ref == passage.end_ref
+                    && passage.start_ref != chosen.start_ref
+                    && passage.start_ref != chosen.end_ref)
+        });
+        if !result.passages.iter().any(|passage| passage == &chosen) {
+            result.passages.insert(0, chosen);
+        } else if let Some(position) = result.passages.iter().position(|passage| passage == &chosen)
+        {
+            if position != 0 {
+                let passage = result.passages.remove(position);
+                result.passages.insert(0, passage);
+            }
+        }
+    }
+}
+
+fn merge_stitched_result(winner: &mut SearchResult, incoming: &SearchResult) {
+    winner.score = winner.score.max(incoming.score);
+    winner.lanes.a = winner.lanes.a.max(incoming.lanes.a);
+    winner.lanes.b = winner.lanes.b.max(incoming.lanes.b);
+    winner.lanes.c = winner.lanes.c.max(incoming.lanes.c);
+    winner.lanes.d = winner.lanes.d.max(incoming.lanes.d);
+    merge_terms(&mut winner.matched_terms, &incoming.matched_terms);
+    merge_terms(&mut winner.expanded_terms, &incoming.expanded_terms);
+    merge_terms(&mut winner.chips, &incoming.chips);
+    merge_passages(&mut winner.passages, &incoming.passages);
+    winner.confidence = stronger_confidence(winner.confidence, incoming.confidence);
+}
+
+fn same_chapter(left: &Verse, right: &Verse) -> bool {
+    chapter_key(&left.reference) == chapter_key(&right.reference)
+        && chapter_key(&left.reference).is_some()
+}
+
+fn chapter_key(reference: &str) -> Option<(&str, &str)> {
+    let (book, chapter_and_verse) = reference.rsplit_once(' ')?;
+    let (chapter, verse) = chapter_and_verse.split_once(':')?;
+    if book.is_empty()
+        || chapter.is_empty()
+        || verse.is_empty()
+        || !chapter.bytes().all(|byte| byte.is_ascii_digit())
+        || !verse.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        return None;
+    }
+    Some((book, chapter))
+}
+
+fn push_unique_term(terms: &mut Vec<String>, term: &str) {
+    if !terms.iter().any(|existing| existing == term) {
+        terms.push(term.to_string());
+    }
+}
+
+fn uf_root(parent: &mut [usize], mut index: usize) -> usize {
+    while parent[index] != index {
+        parent[index] = parent[parent[index]];
+        index = parent[index];
+    }
+    index
 }
 
 /// Promote a strict topic bridge only when an independent top dense result
@@ -640,6 +1063,197 @@ mod tests {
             .expanded_terms
             .iter()
             .any(|term| term == "semantic-agreement:dense+topic"));
+    }
+
+    #[test]
+    fn shared_structured_passages_collapse_to_one_stitched_answer() {
+        let verses = vec![
+            verse(0, "Ephesians 6:10"),
+            verse(1, "Ephesians 6:11"),
+            verse(2, "Ephesians 6:12"),
+            verse(3, "Ephesians 6:13"),
+        ];
+        // Distinct anchors that both point at the armor-of-God unit should not
+        // consume two top-k slots.
+        let mut first = hit(1);
+        first.score = 2.0;
+        first.ranking_tier = 1;
+        first.matched_terms = vec!["armor".into()];
+        first.expanded_terms = vec!["topic:armor of god".into(), "passage:Ephesians 6:10–13".into()];
+        first.passages = vec![PassageRange {
+            start_ref: "Ephesians 6:10".into(),
+            end_ref: "Ephesians 6:13".into(),
+        }];
+        let mut second = hit(3);
+        second.score = 1.5;
+        second.ranking_tier = 1;
+        second.matched_terms = vec!["armor".into()];
+        second.expanded_terms = vec!["topic:armor of god".into(), "passage:Ephesians 6:10–13".into()];
+        second.passages = vec![PassageRange {
+            start_ref: "Ephesians 6:10".into(),
+            end_ref: "Ephesians 6:13".into(),
+        }];
+        let mut distractor = hit(0);
+        distractor.score = 0.5;
+
+        let results = fuse_lanes(
+            &[(LaneId::A, vec![first, second, distractor])],
+            &verses,
+            &SearchOpts::default().with_top_k(3),
+            FuseWeights::default(),
+        );
+
+        assert_eq!(results.len(), 2, "shared passage must collapse: {results:?}");
+        assert_eq!(results[0].reference, "Ephesians 6:11");
+        assert!(
+            results[0]
+                .expanded_terms
+                .iter()
+                .any(|term| term == "passage-stitch:collapsed"),
+            "missing collapse marker: {:?}",
+            results[0].expanded_terms
+        );
+        assert!(
+            results[0]
+                .expanded_terms
+                .iter()
+                .any(|term| term == "passage-stitch:text"),
+            "short passage should stitch display text: {:?}",
+            results[0].expanded_terms
+        );
+        assert!(
+            results[0].text.contains("Ephesians 6:10")
+                && results[0].text.contains("Ephesians 6:13"),
+            "stitched text should cover the passage: {}",
+            results[0].text
+        );
+        assert_eq!(
+            results[0].passages,
+            [PassageRange {
+                start_ref: "Ephesians 6:10".into(),
+                end_ref: "Ephesians 6:13".into(),
+            }]
+        );
+    }
+
+    #[test]
+    fn contiguous_related_hits_form_a_short_passage() {
+        let verses = vec![
+            verse(0, "Lamentations 3:22"),
+            verse(1, "Lamentations 3:23"),
+            verse(2, "Psalm 1:1"),
+        ];
+        let mut a = hit(0);
+        a.score = 1.0;
+        a.matched_terms = vec!["mercies".into()];
+        let mut b = hit(1);
+        b.score = 0.95;
+        b.matched_terms = vec!["mercies".into()];
+        let mut c = hit(2);
+        c.score = 0.5;
+
+        let results = fuse_lanes(
+            &[(LaneId::A, vec![a, b, c])],
+            &verses,
+            &SearchOpts::default().with_top_k(3),
+            FuseWeights::default(),
+        );
+
+        assert_eq!(results.len(), 2);
+        let passage = results
+            .iter()
+            .find(|result| {
+                result.passages.iter().any(|range| {
+                    range.start_ref == "Lamentations 3:22" && range.end_ref == "Lamentations 3:23"
+                })
+            })
+            .expect("contiguous related pair should form a passage");
+        assert!(passage
+            .expanded_terms
+            .iter()
+            .any(|term| term == "passage-stitch:contiguous"));
+        assert!(passage
+            .expanded_terms
+            .iter()
+            .any(|term| term == "passage-stitch:text"));
+    }
+
+    #[test]
+    fn recovered_quotes_do_not_absorb_neighboring_related_hits() {
+        let verses = vec![
+            verse(0, "Matthew 5:3"),
+            verse(1, "Matthew 5:4"),
+            verse(2, "Matthew 5:5"),
+        ];
+        let mut recovered = hit(0);
+        recovered.score = 3.0;
+        recovered.ranking_tier = 3;
+        recovered.confidence_hint = Confidence::Recovered;
+        recovered.matched_terms = vec!["blessed".into(), "poor".into()];
+        let mut neighbor = hit(1);
+        neighbor.score = 2.9;
+        neighbor.matched_terms = vec!["blessed".into()];
+        let mut far = hit(2);
+        far.score = 0.4;
+
+        let results = fuse_lanes(
+            &[(LaneId::A, vec![recovered, neighbor, far])],
+            &verses,
+            &SearchOpts::default().with_top_k(3),
+            FuseWeights::default(),
+        );
+
+        assert_eq!(results[0].reference, "Matthew 5:3");
+        assert_eq!(results[0].confidence, Confidence::Recovered);
+        assert!(
+            results[0].passages.is_empty(),
+            "recovered quote must stay a single verse: {:?}",
+            results[0].passages
+        );
+        assert_eq!(results[0].text, "Matthew 5:3");
+    }
+
+    #[test]
+    fn long_structured_passages_keep_anchor_text() {
+        let mut verses = Vec::new();
+        for index in 0..20u32 {
+            verses.push(verse(index, &format!("Matthew 5:{}", index + 1)));
+        }
+        let mut event = hit(0);
+        event.score = 104.0;
+        event.ranking_tier = 4;
+        event.expanded_terms = vec![
+            "event:Sermon on the Mount".into(),
+            "passage:Matthew 5:1–20".into(),
+        ];
+        event.passages = vec![PassageRange {
+            start_ref: "Matthew 5:1".into(),
+            end_ref: "Matthew 5:20".into(),
+        }];
+
+        let results = fuse_lanes(
+            &[(LaneId::D, vec![event])],
+            &verses,
+            &SearchOpts::default().with_top_k(1),
+            FuseWeights::default(),
+        );
+
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].text, "Matthew 5:1");
+        assert!(
+            !results[0]
+                .expanded_terms
+                .iter()
+                .any(|term| term == "passage-stitch:text"),
+            "long discourse ranges must not dump full text"
+        );
+        assert_eq!(
+            results[0].passages,
+            [PassageRange {
+                start_ref: "Matthew 5:1".into(),
+                end_ref: "Matthew 5:20".into(),
+            }]
+        );
     }
 
     #[test]

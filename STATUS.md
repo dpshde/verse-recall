@@ -51,7 +51,8 @@ Exact hashes, licensing, and platform matrix: [`ARTIFACTS.md`](./ARTIFACTS.md).
   retained **Arctic-M 256 hybrid + optional passage PVEC** wins
   **51/60 (85%)** strict head-to-head cells vs traditional profiles and
   MiniLM. Suite-macro R@1/3/10 **67.8 / 82.8 / 92.3**, confidence safety
-  **100%**. See `eval/method-tradeoffs-v2.md`.
+  **100%**. See `eval/method-tradeoffs-v2.md` (internal) and
+  `eval/method-tradeoffs-v3.md` (adds Tantivy, FlexSearch, plain semantic).
 - Historical encoder bake-off suite-macro R@3 **84.20%** remains the
   documentation reference for the ±2-point compatibility band; v2 measures
   current normalizer-v2 packs.

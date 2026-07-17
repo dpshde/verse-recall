@@ -1,0 +1,243 @@
+{
+  "schema": "verse-recall-external-baselines-v1",
+  "suites": [
+    "semantic",
+    "tot",
+    "overlay",
+    "diagnostic",
+    "confirmation",
+    "revealed-v2",
+    "family",
+    "redteam"
+  ],
+  "top_k": 100,
+  "corpus_verses": 31086,
+  "tantivy_index_bytes": 2454746,
+  "flexsearch_index_chars": 4192542,
+  "methods": [
+    {
+      "key": "tantivy",
+      "label": "Tantivy BM25 (external)",
+      "role": "industry full-text engine baseline",
+      "retained": false,
+      "strengths": "Production inverted-index BM25 with standard tokenization.",
+      "weaknesses": "No expansion, translation bridge, dense meaning, or multi-intent composition.",
+      "needs_query_embeddings": false,
+      "metrics": {
+        "suite_macro_r1": 0.4917106327788487,
+        "suite_macro_r3": 0.6032360010470955,
+        "suite_macro_r10": 0.6856932248161633,
+        "family_cell_r3": 0.5948447871344748,
+        "family_cell_r10": 0.68008312578097,
+        "meaning_only_r3": 0.2962962962962963,
+        "multi_intent_r3": 0.35714285714285715,
+        "hard_negative_rate": 0.7619047619047619,
+        "confidence_safety": null,
+        "engine_data_bytes": 2454746
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.55,
+          "recall_at_3": 0.7,
+          "recall_at_10": 0.75
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5357142857142857,
+          "recall_at_3": 0.6428571428571429,
+          "recall_at_10": 0.75
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.3103448275862069,
+          "recall_at_3": 0.4482758620689655,
+          "recall_at_10": 0.7241379310344828
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.42857142857142855,
+          "recall_at_3": 0.5357142857142857,
+          "recall_at_10": 0.5714285714285714
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6428571428571429,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.7857142857142857
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.4782608695652174,
+          "recall_at_3": 0.5217391304347826,
+          "recall_at_10": 0.5652173913043478
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.48,
+          "recall_at_3": 0.64,
+          "recall_at_10": 0.72
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.5079365079365079,
+          "recall_at_3": 0.5873015873015873,
+          "recall_at_10": 0.6190476190476191
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "flexsearch",
+      "label": "FlexSearch (external)",
+      "role": "browser/client full-text baseline",
+      "retained": false,
+      "strengths": "Lightweight client-side inverted search; no server.",
+      "weaknesses": "No BM25-quality ranking guarantees, no translation/overlay, no semantic paraphrase.",
+      "needs_query_embeddings": false,
+      "metrics": {
+        "suite_macro_r1": 0.22564860426929392,
+        "suite_macro_r3": 0.2618883415435139,
+        "suite_macro_r10": 0.2829101669403393,
+        "family_cell_r3": 0.2602935404931203,
+        "family_cell_r10": 0.2832089566595869,
+        "meaning_only_r3": 0.037037037037037035,
+        "multi_intent_r3": 0.0,
+        "hard_negative_rate": 0.9523809523809523,
+        "confidence_safety": null,
+        "engine_data_bytes": 4192542
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.3,
+          "recall_at_3": 0.35,
+          "recall_at_10": 0.375
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.35714285714285715,
+          "recall_at_3": 0.39285714285714285,
+          "recall_at_10": 0.4642857142857143
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.2413793103448276,
+          "recall_at_3": 0.3103448275862069,
+          "recall_at_10": 0.3103448275862069
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.14285714285714285,
+          "recall_at_3": 0.14285714285714285,
+          "recall_at_10": 0.14285714285714285
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.14285714285714285,
+          "recall_at_3": 0.14285714285714285,
+          "recall_at_10": 0.14285714285714285
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.0,
+          "recall_at_3": 0.0,
+          "recall_at_10": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.24,
+          "recall_at_3": 0.28,
+          "recall_at_10": 0.32
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.38095238095238093,
+          "recall_at_3": 0.47619047619047616,
+          "recall_at_10": 0.5079365079365079
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "plain_semantic",
+      "label": "Plain semantic (Arctic-M 256 dense-only)",
+      "role": "vector-only baseline",
+      "retained": false,
+      "strengths": "Low-overlap paraphrase candidates from a retrieval encoder.",
+      "weaknesses": "No lexical quote floor, KJV bridge, events, corrections, or multi-intent composition.",
+      "needs_query_embeddings": true,
+      "metrics": {
+        "suite_macro_r1": 0.6454769936460341,
+        "suite_macro_r3": 0.7697555091501869,
+        "suite_macro_r10": 0.8571408640917636,
+        "family_cell_r3": 0.7489176202811113,
+        "family_cell_r10": 0.844902878933067,
+        "meaning_only_r3": 0.7407407407407407,
+        "multi_intent_r3": 0.14285714285714285,
+        "hard_negative_rate": 0.9047619047619048,
+        "confidence_safety": 1.0,
+        "engine_data_bytes": 14391616
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.7,
+          "recall_at_3": 0.8,
+          "recall_at_10": 0.85
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.75,
+          "recall_at_3": 0.8571428571428571,
+          "recall_at_10": 0.9285714285714286
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.6206896551724138,
+          "recall_at_3": 0.7241379310344828,
+          "recall_at_10": 0.7931034482758621
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.7142857142857143,
+          "recall_at_10": 0.8214285714285714
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.7857142857142857,
+          "recall_at_3": 0.9642857142857143,
+          "recall_at_10": 0.9642857142857143
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.6521739130434783,
+          "recall_at_3": 0.6956521739130435,
+          "recall_at_10": 0.8260869565217391
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.56,
+          "recall_at_3": 0.72,
+          "recall_at_10": 0.88
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.5238095238095238,
+          "recall_at_3": 0.6825396825396826,
+          "recall_at_10": 0.7936507936507936
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    }
+  ],
+  "notes": [
+    "External systems scored via recall-eval gold matching (live-results).",
+    "Not a sealed generalization claim; revealed suites only.",
+    "No eval golds were written into production packs or runtime data."
+  ]
+}

@@ -6,6 +6,15 @@ Finished baseline inventory, hashes, and honest quality claims:
 Checked-in `data/bsb.jsonl` and `data/*.pack` are enough for local search and
 CI verification. Rebuilds from upstream enriched sources are optional.
 
+`data/bsb.jsonl` carries display refs, BSB text, and optional per-verse
+`events` labels from the enriched source (13,511 of 31,086 verses tagged;
+402 unique labels). The base packer indexes only `ref`/`text`;
+`scripts/build_recall_overlay.py` reads the same file for ranked BSB event
+concepts. Study Bible/Theographic graph events (from
+[`study_bible.db`](https://studybible-mcp.fly.dev/download/study_bible.db))
+remain separate score-zero `event_shadow` evidence — they do not replace BSB
+event annotations.
+
 `reviewed-corrections-v2.*` is the release correction corpus.
 `archive/reviewed-corrections-v1.*` is superseded (do not use in builds).
 
@@ -22,10 +31,20 @@ Source lines look like:
 {"ref":"Gen.1.1","book":"Genesis","chapter":"1","verseNum":"1","text":"...","events":[...],"entities":[...]}
 ```
 
+Committed lines after ingest look like:
+
+```json
+{"ref":"Genesis 1:1","text":"...","events":["Creation of all things"]}
+{"ref":"Genesis 1:6","text":"..."}
+```
+
+(`events` is omitted when the source verse has no labels.)
+
 ## Build display-ref JSONL + indexed base pack
 
 ```bash
 # From repo root — convert book/chapter/verseNum → "Genesis 1:1" style refs
+# and preserve non-empty events[] for the overlay event builder.
 python3 scripts/ingest_bsb.py \
   --input /path/to/enriched-bsb.jsonl \
   --output data/bsb.jsonl

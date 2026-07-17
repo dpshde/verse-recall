@@ -7,7 +7,7 @@ running a documented experiment.
 
 | Script | Purpose |
 |---|---|
-| `ingest_bsb.py` | Canonical BSB display-ref JSONL |
+| `ingest_bsb.py` | Canonical BSB display-ref JSONL (preserves optional `events`) |
 | `build_expand_neighbors.py` | Weighted expansion graph intermediate |
 | `build_recall_overlay.py` | KJV + events + topics + graph + corrections → overlay JSONL |
 | `build_correction_records.py` | Source-reviewed correction corpus builder |
@@ -58,3 +58,9 @@ holdout and the `AGENTS.md` discipline.
 
 Scripts must not read evaluation gold answers to invent runtime aliases.
 Source datasets only, with provenance and measurable coverage.
+
+## External search baselines
+
+`run_external_search_baselines.py` scores **Tantivy BM25**, **FlexSearch**, and **plain Arctic-M dense-only** on the eight revealed trade-off suites via `recall-eval` live-results / dense diagnostic. Output: `eval/external-baselines-v1.json`, merged into `eval/method-tradeoffs-v3.md`.
+
+Requires: `pip install tantivy`, `npm install flexsearch@0.7.43` (pass `--flexsearch-cwd`).

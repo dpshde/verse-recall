@@ -1,5 +1,5 @@
 use crate::error::{CoreError, CoreResult};
-use crate::fuse::{fuse_lanes, FuseWeights};
+use crate::fuse::{fuse_lanes, stitch_passage_results, FuseWeights};
 use crate::lanes::{
     ContextLexicalLane, DenseLane, DenseMetadata, Lane, LaneId, PackedExpandLane,
     PackedLexicalLane, PassageDenseLane, PassageDenseMetadata, RecallOverlay, TextScanLane,
@@ -637,13 +637,22 @@ impl Engine {
             segment_results.push((text.to_string(), response.response.results));
         }
 
+        // Hard groups introduce when they have ranked candidates with either an
+        // authoritative/decisive head or a unique ordinal head. Tied/flat
+        // views stay inert; non-decisive meaning-only clauses with a unique
+        // nearest neighbor still get a composition slot.
         let active_group_count = intent_groups
             .iter()
             .filter(|group| {
-                group
-                    .introducers
-                    .iter()
-                    .any(|index| segment_decisive.get(*index).copied().unwrap_or(false))
+                group.introducers.iter().any(|index| {
+                    let Some((_, results)) = segment_results.get(*index) else {
+                        return false;
+                    };
+                    segment_introduces_intent(
+                        results,
+                        segment_decisive.get(*index).copied().unwrap_or(false),
+                    )
+                })
             })
             .count();
         if active_group_count < 2 {
@@ -655,16 +664,18 @@ impl Engine {
             });
         }
 
-        // Segment decisiveness already gated composition above. Diversify uses
-        // query-local ranks and soft/hard boundary groups only.
-        let results = diversify_segment_results(
+        // Active-group policy is reapplied inside diversify from the same
+        // introduce rule; diversify uses query-local ranks only.
+        let diversified = diversify_segment_results(
             &whole.response.results,
             &segment_results,
             &segment_decisive,
             &composition_plan.relations,
             whole.protect_head,
-            opts.top_k,
+            LANE_CANDIDATE_DEPTH,
         );
+        let mut results = stitch_passage_results(diversified, &self.verses);
+        results.truncate(opts.top_k.max(1));
         Ok(SearchResponse {
             query: normalize_query(query).raw,
             results,
@@ -857,10 +868,10 @@ impl Engine {
                 unique_ordinal_head(&semantic),
                 unique_ordinal_head(&lexical),
             ];
-            (
-                merge_semantic_and_lexical(semantic, lexical, opts.top_k),
-                decisive,
-            )
+            let merged = merge_semantic_and_lexical(semantic, lexical, LANE_CANDIDATE_DEPTH);
+            let mut stitched = stitch_passage_results(merged, &self.verses);
+            stitched.truncate(opts.top_k.max(1));
+            (stitched, decisive)
         } else if embedding.is_some() {
             let candidate_opts = opts.clone().with_top_k(LANE_CANDIDATE_DEPTH);
             let lexical = fuse_lanes(
@@ -886,10 +897,11 @@ impl Engine {
                 unique_ordinal_head(&lexical),
                 unique_ordinal_head(&semantic),
             ];
-            (
-                merge_lexical_head_and_semantic_tail(lexical, semantic, opts.top_k),
-                decisive,
-            )
+            let merged =
+                merge_lexical_head_and_semantic_tail(lexical, semantic, LANE_CANDIDATE_DEPTH);
+            let mut stitched = stitch_passage_results(merged, &self.verses);
+            stitched.truncate(opts.top_k.max(1));
+            (stitched, decisive)
         } else {
             let results = fuse_lanes(&lane_lists, &self.verses, opts, effective_weights);
             let decisive = [unique_ordinal_head(&results), None];
@@ -1293,16 +1305,33 @@ fn cluster_rank(ranks: &HashMap<u32, usize>, members: &[u32]) -> Option<usize> {
         .min()
 }
 
+/// Whether a clause search may introduce a composition obligation.
+///
+/// Decisive heads (protected recovery or unique provider ordinal) always
+/// introduce. Non-decisive clauses still introduce when they return a ranked
+/// list with a unique ordinal head so meaning-only multi-intent is not
+/// collapsed solely for lack of lexical authority. Empty lists and tied/flat
+/// heads remain inert.
+fn segment_introduces_intent(
+    results: &[crate::result::SearchResult],
+    head_is_decisive: bool,
+) -> bool {
+    if results.is_empty() {
+        return false;
+    }
+    head_is_decisive || unique_ordinal_head(results).is_some()
+}
+
 fn group_primary_rank(
     group: &QueryIntentGroup,
     members: &[u32],
     segment_ranks: &[HashMap<u32, usize>],
-    segment_decisive: &[bool],
+    segment_introduces: &[bool],
 ) -> Option<usize> {
     group
         .introducers
         .iter()
-        .filter(|index| segment_decisive.get(**index).copied().unwrap_or(false))
+        .filter(|index| segment_introduces.get(**index).copied().unwrap_or(false))
         .filter_map(|index| segment_ranks.get(*index))
         .filter_map(|ranks| cluster_rank(ranks, members))
         .min()
@@ -1312,12 +1341,12 @@ fn group_refinement_rank(
     group: &QueryIntentGroup,
     members: &[u32],
     segment_ranks: &[HashMap<u32, usize>],
-    segment_decisive: &[bool],
+    segment_introduces: &[bool],
 ) -> Option<usize> {
     group
         .refiners
         .iter()
-        .filter(|index| segment_decisive.get(**index).copied().unwrap_or(false))
+        .filter(|index| segment_introduces.get(**index).copied().unwrap_or(false))
         .filter_map(|index| segment_ranks.get(*index))
         .filter_map(|ranks| cluster_rank(ranks, members))
         .min()
@@ -1481,6 +1510,16 @@ fn diversify_segment_results(
                 .collect()
         })
         .collect();
+    let segment_introduces: Vec<bool> = segment_results
+        .iter()
+        .enumerate()
+        .map(|(index, (_, results))| {
+            segment_introduces_intent(
+                results,
+                segment_decisive.get(index).copied().unwrap_or(false),
+            )
+        })
+        .collect();
 
     let mut candidates = BTreeMap::new();
     for result in whole {
@@ -1502,7 +1541,7 @@ fn diversify_segment_results(
             group
                 .introducers
                 .iter()
-                .any(|index| segment_decisive.get(*index).copied().unwrap_or(false))
+                .any(|index| segment_introduces.get(*index).copied().unwrap_or(false))
         })
         .map(|(index, _)| index)
         .collect();
@@ -1526,7 +1565,7 @@ fn diversify_segment_results(
                     &groups[**group_index],
                     members,
                     &segment_ranks,
-                    segment_decisive,
+                    &segment_introduces,
                 )
                 .is_some_and(|rank| rank == 0)
             })
@@ -1544,7 +1583,7 @@ fn diversify_segment_results(
                 &groups[*group_index],
                 members,
                 &segment_ranks,
-                segment_decisive,
+                &segment_introduces,
             )
             .filter(|rank| *rank < REPRESENTATIVE_DEPTH)
             {
@@ -1601,7 +1640,7 @@ fn diversify_segment_results(
                 let primary = groups[group_index]
                     .introducers
                     .iter()
-                    .filter(|index| segment_decisive.get(**index).copied().unwrap_or(false))
+                    .filter(|index| segment_introduces.get(**index).copied().unwrap_or(false))
                     .filter_map(|index| segment_ranks.get(*index)?.get(verse_index).copied())
                     .min()
                     .unwrap_or(usize::MAX);
@@ -1640,7 +1679,7 @@ fn diversify_segment_results(
                 &groups[*group_index],
                 members,
                 &segment_ranks,
-                segment_decisive,
+                &segment_introduces,
             ) {
                 has_primary = true;
                 primary_best = primary_best.min(primary_rank);
@@ -1650,7 +1689,7 @@ fn diversify_segment_results(
                     &groups[*group_index],
                     members,
                     &segment_ranks,
-                    segment_decisive,
+                    &segment_introduces,
                 ) {
                     refinement_count += 1;
                     refinement_best = refinement_best.min(refinement_rank);
@@ -1694,7 +1733,9 @@ fn diversify_segment_results(
                         groups[*group_index]
                             .introducers
                             .iter()
-                            .filter(|index| segment_decisive.get(**index).copied().unwrap_or(false))
+                            .filter(|index| {
+                                segment_introduces.get(**index).copied().unwrap_or(false)
+                            })
                             .filter_map(|index| {
                                 segment_ranks.get(*index)?.get(verse_index).copied()
                             })
@@ -1711,7 +1752,7 @@ fn diversify_segment_results(
             groups[*group_index]
                 .introducers
                 .iter()
-                .filter(|index| segment_decisive.get(**index).copied().unwrap_or(false))
+                .filter(|index| segment_introduces.get(**index).copied().unwrap_or(false))
                 .any(|index| segment_ranks[*index].contains_key(&verse_index))
         });
         let mut result = candidates[&verse_index].clone();
@@ -1720,6 +1761,9 @@ fn diversify_segment_results(
     }
 
     rebase_merged_scores(&mut results);
+    // diversify_segment_results does not have the verse table; the caller
+    // re-applies passage stitching when verses are available. Keep the
+    // rank-stable prefix here.
     results.truncate(output_limit);
     results
 }
@@ -2821,6 +2865,20 @@ mod tests {
         results
     }
 
+    /// Distinct public scores so `unique_ordinal_head` can treat a clause as
+    /// introducing even when the decisive/authority flag is false.
+    fn with_public_scores(
+        mut results: Vec<crate::result::SearchResult>,
+        scores: &[f32],
+    ) -> Vec<crate::result::SearchResult> {
+        assert_eq!(results.len(), scores.len());
+        for (result, score) in results.iter_mut().zip(scores) {
+            result.score = *score;
+            result.lanes.c = *score;
+        }
+        results
+    }
+
     fn fixture_segment_semantic_pack() -> Vec<u8> {
         let verse_count = 14usize;
         let dims = 3usize;
@@ -3171,6 +3229,176 @@ mod tests {
 
         head.score = f32::from_bits(0.5f32.to_bits() + 1);
         assert_eq!(unique_ordinal_head(&[head, tied]), Some(1));
+    }
+
+    #[test]
+    fn non_decisive_unique_heads_still_reserve_multi_intent_slots() {
+        // Clause heads are marked non-decisive (no lexical authority) but each
+        // list has a unique ordinal nearest neighbor. Composition must diversify
+        // instead of truncating whole-query order solely for the decisive gate.
+        let whole_head = synthetic_result(100, Confidence::Related, None);
+        let whole = vec![
+            whole_head.clone(),
+            synthetic_result(101, Confidence::Related, None),
+            synthetic_result(102, Confidence::Related, None),
+        ];
+        let segments = vec![
+            (
+                "first memory".to_string(),
+                with_public_scores(
+                    vec![
+                        synthetic_result(10, Confidence::Related, None),
+                        synthetic_result(11, Confidence::Related, None),
+                    ],
+                    &[0.92, 0.40],
+                ),
+            ),
+            (
+                "second memory".to_string(),
+                with_public_scores(
+                    vec![
+                        synthetic_result(20, Confidence::Related, None),
+                        synthetic_result(21, Confidence::Related, None),
+                    ],
+                    &[0.88, 0.35],
+                ),
+            ),
+        ];
+        assert!(segment_introduces_intent(&segments[0].1, false));
+        assert!(segment_introduces_intent(&segments[1].1, false));
+
+        let composed = diversify_segment_results(
+            &whole,
+            &segments,
+            &[false, false],
+            &[BoundaryRelation::Additive],
+            false,
+            3,
+        );
+        let indices: Vec<u32> = composed.iter().map(|result| result.verse_index).collect();
+        assert!(
+            indices[..2].contains(&10) && indices[..2].contains(&20),
+            "expected both group primaries in head slots, got {indices:?}"
+        );
+        assert_ne!(composed[0].verse_index, whole_head.verse_index);
+        assert!(composed
+            .iter()
+            .all(|result| result.confidence == Confidence::Related));
+        assert!(composed.iter().any(|result| result
+            .expanded_terms
+            .iter()
+            .any(|term| term == "multi-intent-segment")));
+    }
+
+    #[test]
+    fn non_decisive_segment_recovered_is_demoted_to_related() {
+        let whole = vec![synthetic_result(90, Confidence::Related, None)];
+        let segments = vec![
+            (
+                "clause-a".to_string(),
+                with_public_scores(
+                    vec![
+                        synthetic_result(10, Confidence::Recovered, None),
+                        synthetic_result(11, Confidence::Related, None),
+                    ],
+                    &[0.95, 0.20],
+                ),
+            ),
+            (
+                "clause-b".to_string(),
+                with_public_scores(
+                    vec![
+                        synthetic_result(20, Confidence::Recovered, None),
+                        synthetic_result(21, Confidence::Related, None),
+                    ],
+                    &[0.90, 0.20],
+                ),
+            ),
+        ];
+        let composed = diversify_segment_results(
+            &whole,
+            &segments,
+            &[false, false],
+            &[BoundaryRelation::Additive],
+            false,
+            3,
+        );
+        assert!(composed[..2].iter().any(|r| r.verse_index == 10));
+        assert!(composed[..2].iter().any(|r| r.verse_index == 20));
+        assert!(
+            composed
+                .iter()
+                .all(|result| result.confidence == Confidence::Related),
+            "segment merge must not mint Recovered: {:?}",
+            composed
+                .iter()
+                .map(|r| (r.verse_index, r.confidence))
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn fewer_than_two_introducing_groups_keeps_whole_query_order() {
+        let whole = vec![
+            synthetic_result(90, Confidence::Related, None),
+            synthetic_result(91, Confidence::Related, None),
+        ];
+        // Only one hard group introduces: second segment is flat/tied.
+        let segments = vec![
+            (
+                "clear memory".to_string(),
+                with_public_scores(
+                    vec![
+                        synthetic_result(10, Confidence::Related, None),
+                        synthetic_result(11, Confidence::Related, None),
+                    ],
+                    &[0.9, 0.2],
+                ),
+            ),
+            (
+                "flat unresolved".to_string(),
+                with_public_scores(
+                    vec![
+                        synthetic_result(20, Confidence::Related, None),
+                        synthetic_result(21, Confidence::Related, None),
+                    ],
+                    &[0.5, 0.5],
+                ),
+            ),
+        ];
+        assert!(!segment_introduces_intent(&segments[1].1, false));
+        let composed = diversify_segment_results(
+            &whole,
+            &segments,
+            &[false, false],
+            &[BoundaryRelation::Additive],
+            false,
+            2,
+        );
+        assert_eq!(
+            composed
+                .iter()
+                .map(|result| result.verse_index)
+                .collect::<Vec<_>>(),
+            [90, 91]
+        );
+
+        // Single-segment plans never diversify.
+        let single = diversify_segment_results(
+            &whole,
+            &segments[..1],
+            &[true],
+            &[],
+            false,
+            2,
+        );
+        assert_eq!(
+            single
+                .iter()
+                .map(|result| result.verse_index)
+                .collect::<Vec<_>>(),
+            [90, 91]
+        );
     }
 
     #[test]
@@ -3981,10 +4209,21 @@ mod tests {
             .any(|term| term == "topic:God loved world"));
 
         let ranged_topic = eng.search("valley death story", &opts);
-        assert_eq!(ranged_topic.results[0].reference, "Psalm 23:4");
-        assert!(ranged_topic.results[0].passages.iter().any(|passage| {
-            passage.start_ref == "Psalm 23:1" && passage.end_ref == "Psalm 23:4"
-        }));
+        // Multi-verse exact topics may surface as a passage unit. Prefer the
+        // structured range over any single interior lexical verse.
+        assert!(
+            ranged_topic.results[0].passages.iter().any(|passage| {
+                passage.start_ref == "Psalm 23:1" && passage.end_ref == "Psalm 23:4"
+            }),
+            "expected Psalm 23:1–4 passage on {:?}",
+            ranged_topic.results[0]
+        );
+        assert!(
+            ranged_topic.results[0].reference == "Psalm 23:1"
+                || ranged_topic.results[0].reference == "Psalm 23:4",
+            "unexpected head {}",
+            ranged_topic.results[0].reference
+        );
 
         let curated_over_shadow = eng.search("curated valley story", &opts);
         assert_eq!(curated_over_shadow.results[0].reference, "Psalm 23:4");

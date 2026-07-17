@@ -13,7 +13,9 @@ eval/
   ci-compatibility-*      CI query fixture (revealed only)
   overfit-audit-v1.md     Governing overfitting narrative
   generalization-resolution-v3.md
-  method-tradeoffs-v2.*   Current method matrix
+  method-tradeoffs-v2.*   Internal pack/profile ablation matrix
+  method-tradeoffs-v3.*   v2 + Tantivy / FlexSearch / plain semantic
+  external-baselines-v1.* Live-results baselines for external engines
   holdout-contamination-ledger.md
   *-first-shot-report.*   Immutable sealed/regression first shots
   contaminated/           Quarantined invalid “holdouts”
@@ -42,7 +44,9 @@ eval/
 |---|---|
 | `overfit-audit-v1.md` | Why green suites ≠ generalization |
 | `generalization-resolution-v3.md` | Current quality story |
-| `method-tradeoffs-v2.md` | Method matrix on current packs |
+| `method-tradeoffs-v2.md` | Internal pack/profile ablation matrix |
+| `method-tradeoffs-v3.md` | Same suites + Tantivy, FlexSearch, plain semantic |
+| `external-baselines-v1.json` | Raw external baseline aggregates |
 | `holdout-contamination-ledger.md` | What must never support claims |
 | `resolution-evidence-v2.md` | Corrected status trail |
 

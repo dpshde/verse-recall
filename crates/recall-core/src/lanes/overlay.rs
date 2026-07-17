@@ -170,6 +170,14 @@ impl RecallOverlay {
                     "topic" | "entity" | "person" | "place" | "event_shadow"
                 )
             });
+        // Data-driven traditional-title routing: a 2–5 word topic surface may
+        // become an ordinary event alias only when exactly one longer BSB event
+        // name contains it as a contiguous word window, the topic and event
+        // passages overlap in the same book, and the surface is not itself a
+        // full event key. This is the OVERLAYS "ten commandments" rule, applied
+        // uniformly at open time so release packs benefit without gold lists.
+        let ranked_concepts =
+            attach_topic_contained_event_aliases(ranked_concepts, &shadow_concepts, canonical);
         if !ranked_concepts.is_empty() {
             // Ranked BSB events may consult EXPAND only through validated
             // build-generated multi-cue signatures. Their direct tier remains
@@ -196,6 +204,129 @@ impl RecallOverlay {
         }
         Ok(lanes)
     }
+}
+
+fn attach_topic_contained_event_aliases(
+    mut ranked: Vec<ConceptRecord>,
+    shadows: &[ConceptRecord],
+    canonical: &[Verse],
+) -> Vec<ConceptRecord> {
+    let ref_to_index: HashMap<String, u32> = canonical
+        .iter()
+        .map(|verse| (normalize_ref_key(&verse.reference), verse.index))
+        .collect();
+    let event_indexes: Vec<usize> = ranked
+        .iter()
+        .enumerate()
+        .filter(|(_, record)| record.concept_type == "event")
+        .map(|(index, _)| index)
+        .collect();
+    if event_indexes.is_empty() {
+        return ranked;
+    }
+
+    let event_keys: Vec<String> = event_indexes
+        .iter()
+        .map(|&index| canonical_surface(&ranked[index].key))
+        .collect();
+    let full_event_key_set: HashSet<String> = event_keys.iter().cloned().collect();
+
+    let mut topic_surfaces: Vec<(String, Vec<(u32, u32)>)> = Vec::new();
+    for record in shadows.iter().filter(|record| record.concept_type == "topic") {
+        let mut surfaces = vec![canonical_surface(&record.key)];
+        surfaces.extend(record.aliases.iter().map(|alias| canonical_surface(alias)));
+        surfaces.retain(|surface| {
+            let words = surface.split_whitespace().count();
+            (2..=5).contains(&words) && !full_event_key_set.contains(surface)
+        });
+        surfaces.sort();
+        surfaces.dedup();
+        if surfaces.is_empty() {
+            continue;
+        }
+        let ranges = topic_index_ranges(record, &ref_to_index);
+        if ranges.is_empty() {
+            continue;
+        }
+        for surface in surfaces {
+            topic_surfaces.push((surface, ranges.clone()));
+        }
+    }
+
+    // surface -> list of (event_local_index) that contain it as a contiguous
+    // word window and share a same-book overlapping range with the topic.
+    let mut owners: HashMap<String, Vec<usize>> = HashMap::new();
+    for (surface, topic_ranges) in &topic_surfaces {
+        let surface_words: Vec<&str> = surface.split_whitespace().collect();
+        for (local, &event_index) in event_indexes.iter().enumerate() {
+            let event_words: Vec<&str> = event_keys[local].split_whitespace().collect();
+            if !is_contiguous_word_subsequence(&surface_words, &event_words) {
+                continue;
+            }
+            let event_ranges = concept_index_ranges(&ranked[event_index], &ref_to_index);
+            if !ranges_overlap_same_book(topic_ranges, &event_ranges) {
+                continue;
+            }
+            owners.entry(surface.clone()).or_default().push(local);
+        }
+    }
+
+    for (surface, locals) in owners {
+        let mut unique = locals;
+        unique.sort_unstable();
+        unique.dedup();
+        if unique.len() != 1 {
+            continue;
+        }
+        let event_index = event_indexes[unique[0]];
+        if ranked[event_index].key == surface
+            || ranked[event_index]
+                .aliases
+                .iter()
+                .any(|alias| alias == &surface)
+        {
+            continue;
+        }
+        // Ordinary human-readable alias (not a generated signature marker).
+        ranked[event_index].aliases.push(surface);
+    }
+    ranked
+}
+
+fn topic_index_ranges(
+    record: &ConceptRecord,
+    ref_to_index: &HashMap<String, u32>,
+) -> Vec<(u32, u32)> {
+    concept_index_ranges(record, ref_to_index)
+}
+
+fn concept_index_ranges(
+    record: &ConceptRecord,
+    ref_to_index: &HashMap<String, u32>,
+) -> Vec<(u32, u32)> {
+    record
+        .target_ranges
+        .iter()
+        .filter_map(|range| {
+            let start = *ref_to_index.get(&normalize_ref_key(&range.start_ref))?;
+            let end = *ref_to_index.get(&normalize_ref_key(&range.end_ref))?;
+            (start <= end).then_some((start, end))
+        })
+        .collect()
+}
+
+fn is_contiguous_word_subsequence(needle: &[&str], haystack: &[&str]) -> bool {
+    if needle.is_empty() || needle.len() >= haystack.len() {
+        return false;
+    }
+    haystack
+        .windows(needle.len())
+        .any(|window| window == needle)
+}
+
+fn ranges_overlap_same_book(left: &[(u32, u32)], right: &[(u32, u32)]) -> bool {
+    left.iter()
+        .any(|(ls, le)| right.iter().any(|(rs, re)| ls <= re && rs <= le))
 }
 
 fn parse_binary_section(
@@ -1173,8 +1304,11 @@ struct ConceptMention {
 /// Source-typed concept provider. Ranked curated/event records use Lane D;
 /// BSB events may also use collision-audited morphology/expansion signatures.
 /// Heuristic topic/entity records stay unadvertised. Exact multi-word topics
-/// may rank as Related, while entity/event graph records remain score-zero
-/// shadow evidence.
+/// may rank as Related when independently corroborated (compositional atoms,
+/// multi-source support, or a multi-verse validated range). Entity/event graph
+/// records remain score-zero shadow evidence. Ranked BSB events also expose
+/// corpus-unique contiguous subphrase surfaces so short traditional titles can
+/// activate a longer source event name without prompt-specific aliases.
 pub struct ConceptLane {
     entries: Vec<ConceptEntry>,
     lane_id: LaneId,
@@ -1707,10 +1841,15 @@ impl Lane for ConceptLane {
                     });
                 }
                 ConceptTargets::Shadow(mentions) => {
+                    // Exact multi-word topics may create Related candidates when
+                    // the source range is itself multi-verse (a discourse unit),
+                    // or when independent single-atom topics corroborate the
+                    // same target. Single-verse topic noise stays score-zero.
                     let exact_named_topic = entry.concept_type.as_ref() == "topic"
                         && key_words.len() >= 2
                         && (exact_topic_support >= 2
-                            || topic_has_compositional_target_support(entry, &key, &self.entries));
+                            || topic_has_compositional_target_support(entry, &key, &self.entries)
+                            || topic_has_multi_verse_range(entry));
                     for mention in mentions {
                         let mut expanded_terms = base_expanded.clone();
                         expanded_terms.push(format!("passage:{}", mention.passage));
@@ -1829,6 +1968,44 @@ impl Lane for ConceptLane {
         }
         hits
     }
+}
+
+/// Minimum inclusive verse span for an exact multi-word topic to rank from
+/// range evidence alone. Two-verse Selah associations (common for noisy
+/// single-target pins expanded by one adjacent verse) stay score-zero;
+/// discourse units such as parables and short teaching blocks are longer.
+const MIN_TOPIC_DISCOURSE_SPAN: u32 = 3;
+
+/// A multi-verse topic range is stronger than a one-verse heuristic pin when it
+/// is long enough to look like a discourse unit rather than a top-1 association
+/// with a neighboring verse. Exact multi-word queries against those units may
+/// rank as Related without atom-level corroboration.
+fn topic_has_multi_verse_range(entry: &ConceptEntry) -> bool {
+    let ConceptTargets::Shadow(mentions) = &entry.targets else {
+        return false;
+    };
+    mentions.iter().any(|mention| {
+        topic_range_span_verses(&mention.range).is_some_and(|span| span >= MIN_TOPIC_DISCOURSE_SPAN)
+    })
+}
+
+fn topic_range_span_verses(range: &PassageRange) -> Option<u32> {
+    let start = parse_ref_chapter_verse(&range.start_ref)?;
+    let end = parse_ref_chapter_verse(&range.end_ref)?;
+    if start.0 != end.0 || start.1 != end.1 {
+        // Cross-chapter ranges are always discourse-length for this gate.
+        return Some(MIN_TOPIC_DISCOURSE_SPAN.max(3));
+    }
+    if end.2 < start.2 {
+        return None;
+    }
+    Some(end.2 - start.2 + 1)
+}
+
+fn parse_ref_chapter_verse(reference: &str) -> Option<(&str, u32, u32)> {
+    let (book, chapter_and_verse) = reference.rsplit_once(' ')?;
+    let (chapter, verse) = chapter_and_verse.split_once(':')?;
+    Some((book, chapter.parse().ok()?, verse.parse().ok()?))
 }
 
 /// A compound topic can outrank lexical noise only when every content atom is
@@ -2178,6 +2355,177 @@ mod tests {
     }
 
     #[test]
+    fn exact_multi_verse_topic_ranks_related_without_atom_support() {
+        let canonical = vec![
+            Verse {
+                index: 0,
+                reference: "Matthew 5:3".into(),
+                text: "Blessed are the poor in spirit.".into(),
+            },
+            Verse {
+                index: 1,
+                reference: "Matthew 5:4".into(),
+                text: "Blessed are those who mourn.".into(),
+            },
+            Verse {
+                index: 2,
+                reference: "Matthew 5:12".into(),
+                text: "Rejoice and be glad.".into(),
+            },
+            Verse {
+                index: 3,
+                reference: "Romans 1:26".into(),
+                text: "Sensitive control start.".into(),
+            },
+            Verse {
+                index: 4,
+                reference: "Romans 1:27".into(),
+                text: "Sensitive control end.".into(),
+            },
+        ];
+        let lane = ConceptLane::new(
+            &canonical,
+            vec![
+                ConceptRecord {
+                    concept_type: "topic".into(),
+                    key: "the beatitudes".into(),
+                    label: "the beatitudes".into(),
+                    aliases: Vec::new(),
+                    source: "Selah.test".into(),
+                    anchor_ref: "Matthew 5:3".into(),
+                    target_ranges: vec![TargetRange {
+                        start_ref: "Matthew 5:3".into(),
+                        end_ref: "Matthew 5:12".into(),
+                    }],
+                },
+                ConceptRecord {
+                    concept_type: "topic".into(),
+                    key: "animal molesters".into(),
+                    label: "animal molesters".into(),
+                    aliases: Vec::new(),
+                    source: "Selah.test".into(),
+                    anchor_ref: "Romans 1:26".into(),
+                    // Two-verse Selah pins must not rank from range evidence alone.
+                    target_ranges: vec![TargetRange {
+                        start_ref: "Romans 1:26".into(),
+                        end_ref: "Romans 1:27".into(),
+                    }],
+                },
+            ],
+            LaneId::C,
+            true,
+        )
+        .unwrap();
+
+        let hits = lane.search(&normalize_query("the beatitudes"), 10);
+        assert_eq!(hits.len(), 1);
+        assert_eq!(hits[0].verse_index, 0);
+        assert_eq!(hits[0].score, 1.0);
+        assert_eq!(hits[0].ranking_tier, 1);
+        assert_eq!(hits[0].passages[0].end_ref, "Matthew 5:12");
+
+        let unsafe_hits = lane.search(&normalize_query("animal molesters"), 10);
+        assert_eq!(unsafe_hits[0].score, 0.0);
+        assert_eq!(unsafe_hits[0].ranking_tier, 0);
+    }
+
+    #[test]
+    fn unique_topic_contained_in_event_activates_ranked_event() {
+        let canonical = vec![
+            Verse {
+                index: 0,
+                reference: "Exodus 19:1".into(),
+                text: "On the third month.".into(),
+            },
+            Verse {
+                index: 1,
+                reference: "Exodus 20:3".into(),
+                text: "You shall have no other gods.".into(),
+            },
+            Verse {
+                index: 2,
+                reference: "Exodus 20:6".into(),
+                text: "but showing loving devotion.".into(),
+            },
+            Verse {
+                index: 3,
+                reference: "Exodus 20:17".into(),
+                text: "You shall not covet.".into(),
+            },
+            Verse {
+                index: 4,
+                reference: "Mark 7:1".into(),
+                text: "The Pharisees gathered.".into(),
+            },
+            Verse {
+                index: 5,
+                reference: "Mark 7:15".into(),
+                text: "Nothing outside a man.".into(),
+            },
+        ];
+        let overlay = RecallOverlay {
+            concepts: vec![
+                ConceptRecord {
+                    concept_type: "event".into(),
+                    key: "ten commandments given".into(),
+                    label: "Ten Commandments Given".into(),
+                    aliases: Vec::new(),
+                    source: "BSB.events".into(),
+                    anchor_ref: "Exodus 20:6".into(),
+                    target_ranges: vec![TargetRange {
+                        start_ref: "Exodus 19:1".into(),
+                        end_ref: "Exodus 20:17".into(),
+                    }],
+                },
+                ConceptRecord {
+                    concept_type: "event".into(),
+                    key: "commandments and tradition discourse".into(),
+                    label: "Commandments and Tradition Discourse".into(),
+                    aliases: Vec::new(),
+                    source: "BSB.events".into(),
+                    anchor_ref: "Mark 7:1".into(),
+                    target_ranges: vec![TargetRange {
+                        start_ref: "Mark 7:1".into(),
+                        end_ref: "Mark 7:15".into(),
+                    }],
+                },
+                ConceptRecord {
+                    concept_type: "topic".into(),
+                    key: "ten commandments".into(),
+                    label: "ten commandments".into(),
+                    aliases: vec!["the ten commandments".into()],
+                    source: "Selah.test".into(),
+                    anchor_ref: "Exodus 20:3".into(),
+                    target_ranges: vec![TargetRange {
+                        start_ref: "Exodus 20:3".into(),
+                        end_ref: "Exodus 20:17".into(),
+                    }],
+                },
+            ],
+            alternates: Vec::new(),
+        };
+        let lanes = overlay
+            .into_lanes_with_expansion(&canonical, None)
+            .expect("valid overlay");
+        let hits: Vec<_> = lanes
+            .iter()
+            .flat_map(|lane| lane.search(&normalize_query("ten commandments"), 5))
+            .collect();
+        let event_hit = hits
+            .iter()
+            .find(|hit| hit.score >= 100.0)
+            .expect("topic⊂event alias should rank the BSB event");
+        assert_eq!(event_hit.verse_index, 2);
+        assert_eq!(event_hit.confidence_hint, Confidence::Related);
+        assert_eq!(event_hit.passages[0].start_ref, "Exodus 19:1");
+        assert_eq!(event_hit.passages[0].end_ref, "Exodus 20:17");
+        assert!(event_hit
+            .expanded_terms
+            .iter()
+            .any(|term| term == "event:Ten Commandments Given"));
+    }
+
+    #[test]
     fn engine_open_never_promotes_graph_shadows_or_synthesizes_aliases() {
         let canonical = vec![
             Verse {
@@ -2299,7 +2647,6 @@ mod tests {
             "tabernacle built",
             "siege of jerusalem",
             "fall of jerusalem",
-            "crosses the jordan",
         ] {
             let hits: Vec<_> = lanes
                 .iter()
@@ -2315,6 +2662,23 @@ mod tests {
                     .any(|term| term.starts_with("event:Fall of "))
             }));
         }
+
+        // A multi-word topic that is a unique contiguous subphrase of one longer
+        // BSB event with overlapping ranges is allowed to activate that event.
+        let short: Vec<_> = lanes
+            .iter()
+            .flat_map(|lane| lane.search(&normalize_query("crosses the jordan"), 10))
+            .collect();
+        assert!(
+            short.iter().any(|hit| {
+                hit.score > 0.0
+                    && hit
+                        .expanded_terms
+                        .iter()
+                        .any(|term| term == "source:BSB.events")
+            }),
+            "topic⊂event should activate the ranked BSB event: {short:?}"
+        );
 
         let ranked: Vec<_> = lanes
             .iter()
