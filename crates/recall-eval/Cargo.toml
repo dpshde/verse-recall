@@ -1,0 +1,19 @@
+[package]
+name = "recall-eval"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Scripture-recall evaluation harness with head and deep recall metrics"
+repository.workspace = true
+
+[[bin]]
+name = "recall-eval"
+path = "src/main.rs"
+
+[dependencies]
+recall-core = { workspace = true }
+recall-pack = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }

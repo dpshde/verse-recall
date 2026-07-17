@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_correction_manifest",
+  "review_policy": "source-backed-correction-v1",
+  "reviewed_by": "codex-source-review-v1",
+  "reviewed_at": "2026-07-16",
+  "review_scope": "BibleAquifer correction candidates only; no evaluation prompt, result, family, or gold reference was an input",
+  "source": {
+    "dataset": "BibleAquifer",
+    "table": "aquifer_content",
+    "source_url": "https://github.com/djayatillake/studybible-mcp",
+    "license": "CC BY-SA 4.0",
+    "database_sha256": "b245186271abf8ae2644e11b98716b83b0728f05704e5358e70c949b8e8beca3",
+    "input_row_count": 102673
+  },
+  "candidate_artifact": {
+    "name": "aquifer-correction-candidates-v1.jsonl",
+    "sha256": "f5c44667b66bcbd5d14911f9b541b9d56cf459c978fb5ba23d3a103763dde0b2",
+    "candidate_count": 442
+  },
+  "review_counts": {
+    "approved_record_count": 20,
+    "rejected_candidate_count": 422,
+    "approved_claim_surface_count": 42,
+    "approved_alias_count": 22,
+    "canonical_target_book_count": 15,
+    "by_resource_type": [
+      {
+        "resource_type": "dictionary",
+        "candidate_count": 44,
+        "approved_count": 8,
+        "rejected_count": 36
+      },
+      {
+        "resource_type": "study_notes",
+        "candidate_count": 18,
+        "approved_count": 7,
+        "rejected_count": 11
+      },
+      {
+        "resource_type": "translation_notes_sil",
+        "candidate_count": 354,
+        "approved_count": 3,
+        "rejected_count": 351
+      },
+      {
+        "resource_type": "translation_notes_uw",
+        "candidate_count": 26,
+        "approved_count": 2,
+        "rejected_count": 24
+      }
+    ]
+  },
+  "selection_rule": "Approve only when the cited source itself identifies a held or readily asserted misconception, supplies an explicit unambiguous correction, supports every normalized claim surface, and provides a defensible canonical target.",
+  "rejection_rule": "Reject ordinary unspecified details, unresolved interpretations, contextual descriptions of beliefs without a source correction, claims requiring added facts or stronger certainty, noncanonical background without a defensible passage target, and any record that fails identity, hash, schema, reference, or collision validation.",
+  "approved_record_ids": [
+    "aquifer.4285",
+    "aquifer.6153",
+    "aquifer.11745",
+    "aquifer.12585",
+    "aquifer.13472",
+    "aquifer.13758",
+    "aquifer.14970",
+    "aquifer.16939",
+    "aquifer.18572",
+    "aquifer.19155",
+    "aquifer.20869",
+    "aquifer.21762",
+    "aquifer.22305",
+    "aquifer.22335",
+    "aquifer.22844",
+    "aquifer.49700",
+    "aquifer.90420",
+    "aquifer.97888",
+    "aquifer.98190",
+    "aquifer.99741"
+  ],
+  "corpus": {
+    "path": "data/reviewed-corrections-v1.jsonl",
+    "sha256": "3b472311afa191dcf5c4358d363b89e636ec2fef6a0110249a7f71973a8369c5",
+    "byte_count": 34544,
+    "record_count": 20
+  },
+  "schema": {
+    "path": "data/correction-record.schema.json",
+    "sha256": "ffa1218d7a15214b5cead8e1ce91f5955902324e06eb5e96e91d897958176e62"
+  },
+  "collision_validation": {
+    "canonical_path": "data/bsb.jsonl",
+    "canonical_sha256": "27f91253a045ac4ca4954061408d415c695a4bccd4c5d6d33cfc989ebfb688ac",
+    "checked_claim_surface_count": 42,
+    "collision_count": 0,
+    "alternate_corpus_count": 0
+  }
+}

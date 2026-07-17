@@ -1,0 +1,12 @@
+[package]
+name = "recall-pack"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "verse-recall pack format: sectioned zero-copy .pack reader/writer"
+repository.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+
+[dev-dependencies]

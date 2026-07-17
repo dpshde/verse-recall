@@ -1,0 +1,15 @@
+[package]
+name = "recall-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "verse-recall runtime engine: deterministic text recall over .pack buffers"
+repository.workspace = true
+
+[dependencies]
+recall-pack = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]

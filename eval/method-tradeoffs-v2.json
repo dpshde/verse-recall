@@ -1,0 +1,1480 @@
+{
+  "schema": "verse-recall-method-tradeoffs-v2",
+  "suites": [
+    {
+      "key": "semantic",
+      "label": "Semantic quality v2",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/semantic-quality-v2.jsonl",
+        "bytes": 12015,
+        "sha256": "f47e0d037c423a8c199f0d7733a5d5afec2f57fa0e62cfe879ba7c95b010915d"
+      }
+    },
+    {
+      "key": "tot",
+      "label": "Tip of the tongue",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/tot-prompts.jsonl",
+        "bytes": 6346,
+        "sha256": "1f1c626cd8650e21e3c85f559f84040b2818d77dd67bced707db3f890a208918"
+      }
+    },
+    {
+      "key": "overlay",
+      "label": "Overlay adversarial",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/overlay-adversarial-v1.jsonl",
+        "bytes": 11023,
+        "sha256": "882b669bce9ac5ce379f48e4d5a197028d7bf03e57c96a4a47d85f6e17345b74"
+      }
+    },
+    {
+      "key": "diagnostic",
+      "label": "Overfit diagnostic",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/overfit-diagnostic-v1.jsonl",
+        "bytes": 8749,
+        "sha256": "acd45841777e012cc8f7e58e042a216f4e9e9e02a8a39aecabf8c2288442f4fa"
+      }
+    },
+    {
+      "key": "confirmation",
+      "label": "Overfit confirmation",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/overfit-confirmation-v1.jsonl",
+        "bytes": 8679,
+        "sha256": "0c2e1e3f506d05e39864509dea1acb8ea75b60aadb616d8dbe7fbff2523e9271"
+      }
+    },
+    {
+      "key": "revealed-v2",
+      "label": "Revealed holdout v2",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/overfit-holdout-v2.jsonl",
+        "bytes": 6773,
+        "sha256": "fe069a1633fbee94ed5f02cf9d75bc11c158dabedf9818c72d555b1dfa5e9361"
+      }
+    },
+    {
+      "key": "family",
+      "label": "Family regression",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/family-regression-v1.jsonl",
+        "bytes": 6211,
+        "sha256": "52206614108b18724162aa0a02c5b88681903dba4e5180fb046a0bb398e0238a"
+      }
+    },
+    {
+      "key": "redteam",
+      "label": "Red-team prompts",
+      "prompts": {
+        "path": "/Users/user/Developer/verse-recall/eval/redteam-prompts.jsonl",
+        "bytes": 15913,
+        "sha256": "fc5f88604c0b9502d28d042d9029bad9ddf251d1de07917d696145d1e08b1db5"
+      }
+    }
+  ],
+  "embedding_space_id_arctic": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+  "embedding_space_id_minilm": "76eaf6543d4c23168a12842a04d8eceb125b9b504b34c4ae1a418ee1fc8c0794",
+  "retrieval_depth": 100,
+  "evaluator": {
+    "path": "/Users/user/Developer/verse-recall/target/release/recall-eval",
+    "bytes": 1346336,
+    "sha256": "0b9972d3a9407cb1da0683bb0bd055f45a5767cf1e9fecb2d0c69de1eee32d42"
+  },
+  "artifacts": {
+    "base": {
+      "path": "/Users/user/Developer/verse-recall/data/bsb-full.pack",
+      "bytes": 6433344,
+      "sha256": "3782f460405389b0156e6f8e29df6b98e8b13d3118689f9afbca76e88d10b69b"
+    },
+    "expand": {
+      "path": "/Users/user/Developer/verse-recall/data/bsb-expand.pack",
+      "bytes": 5628672,
+      "sha256": "e7b26a3069e19a35f47eb389177cb867ab449f1e1955a8a1ecfdf43045206061"
+    },
+    "knowledge": {
+      "path": "/Users/user/Developer/verse-recall/data/recall-overlay.pack",
+      "bytes": 7475904,
+      "sha256": "607b71dbe42f96ba47d79cec007ad86a653cd67051a9f105fd39ec812107b676"
+    },
+    "arctic_dense": {
+      "path": "/Users/user/Developer/verse-recall/data/bsb-semantic.pack",
+      "bytes": 7958272,
+      "sha256": "9551d428dedde6168326e2dcc5c7818abcbd86de8334b9310b6c90a2cc0afd8d"
+    },
+    "minilm_dense": {
+      "path": "/private/tmp/bsb-semantic-minilm.pack",
+      "bytes": 23874304,
+      "sha256": "e8318f282c0678fc5ebbed92833568fa2540a519ef2001be62e7a6703b3af13c"
+    },
+    "passage": {
+      "path": "/Users/user/Developer/verse-recall/data/bsb-passage-semantic.pack",
+      "bytes": 1404096,
+      "sha256": "08474a1a5ce152e1af6cfc612bdc8630e100a888bb284f3a8afdadc335a74bb5"
+    }
+  },
+  "methods": [
+    {
+      "key": "keyword",
+      "label": "Classic keyword overlap",
+      "role": "traditional baseline",
+      "retained": false,
+      "strengths": "Transparent exact-token baseline.",
+      "weaknesses": "No phrase model, translation bridge, or meaning-only recall.",
+      "needs_query_embeddings": false,
+      "embedding_space_id": null,
+      "metrics": {
+        "suite_macro_r1": 0.46368588027414864,
+        "suite_macro_r3": 0.5144210037838224,
+        "suite_macro_r10": 0.6122213446848004,
+        "family_cell_r3": 0.462273331023331,
+        "family_cell_r10": 0.5552109501328251,
+        "meaning_only_r3": 0.12903225806451613,
+        "multi_intent_r3": 0.0,
+        "hard_negative_rate": 0.8095238095238095,
+        "confidence_safety": null,
+        "pooled_r1": 0.4621212121212121,
+        "pooled_r3": 0.5113636363636364,
+        "pooled_r10": 0.6022727272727273,
+        "engine_data_bytes": 6433344
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.525,
+          "recall_at_3": 0.55,
+          "recall_at_10": 0.625,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.75
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.4642857142857143,
+          "recall_at_3": 0.5,
+          "recall_at_10": 0.6428571428571429,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.4482758620689655,
+          "recall_at_3": 0.5517241379310345,
+          "recall_at_10": 0.6551724137931034,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.4642857142857143,
+          "recall_at_3": 0.5357142857142857,
+          "recall_at_10": 0.5714285714285714,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.4642857142857143,
+          "recall_at_3": 0.5,
+          "recall_at_10": 0.7142857142857143,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.43478260869565216,
+          "recall_at_3": 0.5217391304347826,
+          "recall_at_10": 0.5652173913043478,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.48,
+          "recall_at_3": 0.48,
+          "recall_at_10": 0.6,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.42857142857142855,
+          "recall_at_3": 0.47619047619047616,
+          "recall_at_10": 0.5238095238095238,
+          "confidence_safety": 0.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "lexical",
+      "label": "Indexed BM25",
+      "role": "traditional foundation",
+      "retained": false,
+      "strengths": "Compact deterministic near-quote recall.",
+      "weaknesses": "Fails zero-overlap paraphrases.",
+      "needs_query_embeddings": false,
+      "embedding_space_id": null,
+      "metrics": {
+        "suite_macro_r1": 0.5413086760191332,
+        "suite_macro_r3": 0.6668778705885152,
+        "suite_macro_r10": 0.7189557304680992,
+        "family_cell_r3": 0.6011975015881267,
+        "family_cell_r10": 0.6516977614633865,
+        "meaning_only_r3": 0.5161290322580645,
+        "multi_intent_r3": 0.2857142857142857,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 0.9929328621908127,
+        "pooled_r1": 0.5606060606060606,
+        "pooled_r3": 0.678030303030303,
+        "pooled_r10": 0.7272727272727273,
+        "engine_data_bytes": 6433344
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.575,
+          "recall_at_3": 0.65,
+          "recall_at_10": 0.7,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6785714285714286,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.7857142857142857,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.3448275862068966,
+          "recall_at_3": 0.5517241379310345,
+          "recall_at_10": 0.6551724137931034,
+          "confidence_safety": 0.9428571428571428,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5,
+          "recall_at_3": 0.6071428571428571,
+          "recall_at_10": 0.6428571428571429,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6071428571428571,
+          "recall_at_3": 0.8214285714285714,
+          "recall_at_10": 0.8214285714285714,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.4782608695652174,
+          "recall_at_3": 0.6086956521739131,
+          "recall_at_10": 0.6086956521739131,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.48,
+          "recall_at_3": 0.6,
+          "recall_at_10": 0.76,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.6666666666666666,
+          "recall_at_3": 0.746031746031746,
+          "recall_at_10": 0.7777777777777778,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "expanded",
+      "label": "BM25 + expansion",
+      "role": "traditional IR extension",
+      "retained": false,
+      "strengths": "Portable vocabulary drift correction.",
+      "weaknesses": "Synonym noise; no narrative grounding.",
+      "needs_query_embeddings": false,
+      "embedding_space_id": null,
+      "metrics": {
+        "suite_macro_r1": 0.5272709776064349,
+        "suite_macro_r3": 0.6686635848742295,
+        "suite_macro_r10": 0.7270807304680993,
+        "family_cell_r3": 0.6020984024890276,
+        "family_cell_r10": 0.6602844731750982,
+        "meaning_only_r3": 0.5483870967741935,
+        "multi_intent_r3": 0.35714285714285715,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 0.9929328621908127,
+        "pooled_r1": 0.5454545454545454,
+        "pooled_r3": 0.6818181818181818,
+        "pooled_r10": 0.7348484848484849,
+        "engine_data_bytes": 12062016
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.55,
+          "recall_at_3": 0.7,
+          "recall_at_10": 0.725,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6428571428571429,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.7857142857142857,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.3448275862068966,
+          "recall_at_3": 0.5517241379310345,
+          "recall_at_10": 0.6551724137931034,
+          "confidence_safety": 0.9428571428571428,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5,
+          "recall_at_3": 0.6071428571428571,
+          "recall_at_10": 0.6071428571428571,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.7857142857142857,
+          "recall_at_10": 0.8571428571428571,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.4782608695652174,
+          "recall_at_3": 0.6086956521739131,
+          "recall_at_10": 0.6086956521739131,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.48,
+          "recall_at_3": 0.6,
+          "recall_at_10": 0.8,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.6507936507936508,
+          "recall_at_3": 0.746031746031746,
+          "recall_at_10": 0.7777777777777778,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "knowledge",
+      "label": "Lexical + KJV/source overlay",
+      "role": "traditional rules + graph",
+      "retained": false,
+      "strengths": "Translation, events, entities, corrections without encoder.",
+      "weaknesses": "Sparse knowledge is not semantic similarity.",
+      "needs_query_embeddings": false,
+      "embedding_space_id": null,
+      "metrics": {
+        "suite_macro_r1": 0.6344001362414031,
+        "suite_macro_r3": 0.7314779515004403,
+        "suite_macro_r10": 0.777261339568311,
+        "family_cell_r3": 0.658425192018942,
+        "family_cell_r10": 0.7026153557403557,
+        "meaning_only_r3": 0.5161290322580645,
+        "multi_intent_r3": 0.2857142857142857,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 1.0,
+        "pooled_r1": 0.6477272727272727,
+        "pooled_r3": 0.7386363636363636,
+        "pooled_r10": 0.7803030303030303,
+        "engine_data_bytes": 13909248
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.675,
+          "recall_at_3": 0.7,
+          "recall_at_10": 0.75,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6785714285714286,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.7857142857142857,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.7586206896551724,
+          "recall_at_3": 0.8275862068965517,
+          "recall_at_10": 0.896551724137931,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5357142857142857,
+          "recall_at_3": 0.6428571428571429,
+          "recall_at_10": 0.6785714285714286,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6071428571428571,
+          "recall_at_3": 0.8214285714285714,
+          "recall_at_10": 0.8214285714285714,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.5217391304347826,
+          "recall_at_3": 0.6521739130434783,
+          "recall_at_10": 0.6521739130434783,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.6,
+          "recall_at_3": 0.68,
+          "recall_at_10": 0.84,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.6984126984126984,
+          "recall_at_3": 0.7777777777777778,
+          "recall_at_10": 0.7936507936507936,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "hybrid_no_dense",
+      "label": "Encoder-free hybrid",
+      "role": "hybrid without vectors",
+      "retained": false,
+      "strengths": "Strong offline quotes/translation/events without encoder cost.",
+      "weaknesses": "Shallow meaning-only tail.",
+      "needs_query_embeddings": false,
+      "embedding_space_id": null,
+      "metrics": {
+        "suite_macro_r1": 0.619563655672164,
+        "suite_macro_r3": 0.7344490106137407,
+        "suite_macro_r10": 0.7896966843958972,
+        "family_cell_r3": 0.6615431537306538,
+        "family_cell_r10": 0.7151083174520674,
+        "meaning_only_r3": 0.5483870967741935,
+        "multi_intent_r3": 0.35714285714285715,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 1.0,
+        "pooled_r1": 0.6287878787878788,
+        "pooled_r3": 0.7424242424242424,
+        "pooled_r10": 0.7916666666666666,
+        "engine_data_bytes": 19537920
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.625,
+          "recall_at_3": 0.725,
+          "recall_at_10": 0.775,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6428571428571429,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.7857142857142857,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.7931034482758621,
+          "recall_at_3": 0.8620689655172413,
+          "recall_at_10": 0.9310344827586207,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5357142857142857,
+          "recall_at_3": 0.6428571428571429,
+          "recall_at_10": 0.6428571428571429,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.7857142857142857,
+          "recall_at_10": 0.8571428571428571,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.5217391304347826,
+          "recall_at_3": 0.6521739130434783,
+          "recall_at_10": 0.6521739130434783,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.6,
+          "recall_at_3": 0.68,
+          "recall_at_10": 0.88,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.6666666666666666,
+          "recall_at_3": 0.7777777777777778,
+          "recall_at_10": 0.7936507936507936,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "dense_only",
+      "label": "Dense Arctic-M 256 alone",
+      "role": "vector alternative",
+      "retained": false,
+      "strengths": "Generic low-overlap candidates.",
+      "weaknesses": "Loses translation, graph, and phrase advantages alone.",
+      "needs_query_embeddings": true,
+      "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+      "metrics": {
+        "suite_macro_r1": 0.6473338777040052,
+        "suite_macro_r3": 0.7871563028009804,
+        "suite_macro_r10": 0.886208324409224,
+        "family_cell_r3": 0.7105708773677524,
+        "family_cell_r10": 0.8106629165222915,
+        "meaning_only_r3": 0.7096774193548387,
+        "multi_intent_r3": 0.2857142857142857,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 0.9929328621908127,
+        "pooled_r1": 0.6401515151515151,
+        "pooled_r3": 0.7840909090909091,
+        "pooled_r10": 0.8901515151515151,
+        "engine_data_bytes": 14391616
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.675,
+          "recall_at_3": 0.8,
+          "recall_at_10": 0.9,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.75,
+          "recall_at_3": 0.8928571428571429,
+          "recall_at_10": 0.9642857142857143,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.6206896551724138,
+          "recall_at_3": 0.7241379310344828,
+          "recall_at_10": 0.7931034482758621,
+          "confidence_safety": 0.9428571428571428,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.7142857142857143,
+          "recall_at_10": 0.8214285714285714,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.8214285714285714,
+          "recall_at_3": 0.9642857142857143,
+          "recall_at_10": 1.0,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.6086956521739131,
+          "recall_at_3": 0.6956521739130435,
+          "recall_at_10": 0.8260869565217391,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.56,
+          "recall_at_3": 0.76,
+          "recall_at_10": 0.88,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.746031746031746,
+          "recall_at_10": 0.9047619047619048,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "arctic_full",
+      "label": "Guarded hybrid Arctic-M 256",
+      "role": "compact release candidate",
+      "retained": false,
+      "strengths": "Complementary quote, translation, event, and semantic coverage.",
+      "weaknesses": "Larger; host encoder required; multi-intent still incomplete.",
+      "needs_query_embeddings": true,
+      "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+      "metrics": {
+        "suite_macro_r1": 0.6727002570143499,
+        "suite_macro_r3": 0.8187080269389114,
+        "suite_macro_r10": 0.9127600485471551,
+        "family_cell_r3": 0.7383920579233079,
+        "family_cell_r10": 0.8317132637445137,
+        "meaning_only_r3": 0.6774193548387096,
+        "multi_intent_r3": 0.2857142857142857,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 1.0,
+        "pooled_r1": 0.6628787878787878,
+        "pooled_r3": 0.8106060606060606,
+        "pooled_r10": 0.9128787878787878,
+        "engine_data_bytes": 27496192
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.7,
+          "recall_at_3": 0.8,
+          "recall_at_10": 0.9,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.75,
+          "recall_at_3": 0.8571428571428571,
+          "recall_at_10": 0.9642857142857143,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.7586206896551724,
+          "recall_at_3": 0.896551724137931,
+          "recall_at_10": 0.9655172413793104,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.8214285714285714,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.8214285714285714,
+          "recall_at_3": 0.9642857142857143,
+          "recall_at_10": 1.0,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.6086956521739131,
+          "recall_at_3": 0.6956521739130435,
+          "recall_at_10": 0.8260869565217391,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.6,
+          "recall_at_3": 0.84,
+          "recall_at_10": 0.92,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.746031746031746,
+          "recall_at_10": 0.9047619047619048,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "arctic_passage",
+      "label": "Guarded hybrid Arctic-M 256 + passage PVEC",
+      "role": "retained release candidate",
+      "retained": true,
+      "strengths": "Same hybrid plus range-bound passage vectors; cannot mint Recovered without LVEC support.",
+      "weaknesses": "Adds ~1.34 MiB; passage table is research-grade source coverage, not a sealed-gate claim.",
+      "needs_query_embeddings": true,
+      "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+      "metrics": {
+        "suite_macro_r1": 0.6781350396230456,
+        "suite_macro_r3": 0.828001936531734,
+        "suite_macro_r10": 0.9226591168701365,
+        "family_cell_r3": 0.7478341923654422,
+        "family_cell_r10": 0.8410882637445137,
+        "meaning_only_r3": 0.6774193548387096,
+        "multi_intent_r3": 0.21428571428571427,
+        "hard_negative_rate": 0.8571428571428571,
+        "confidence_safety": 1.0,
+        "pooled_r1": 0.6666666666666666,
+        "pooled_r3": 0.8181818181818182,
+        "pooled_r10": 0.9204545454545454,
+        "engine_data_bytes": 28900288
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.7,
+          "recall_at_3": 0.775,
+          "recall_at_10": 0.9,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.8125
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.75,
+          "recall_at_3": 0.8571428571428571,
+          "recall_at_10": 0.9642857142857143,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.7586206896551724,
+          "recall_at_3": 0.896551724137931,
+          "recall_at_10": 0.9655172413793104,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.75,
+          "recall_at_10": 0.8571428571428571,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.8214285714285714,
+          "recall_at_3": 0.9642857142857143,
+          "recall_at_10": 1.0,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.6521739130434783,
+          "recall_at_3": 0.7391304347826086,
+          "recall_at_10": 0.8695652173913043,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.6,
+          "recall_at_3": 0.88,
+          "recall_at_10": 0.92,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.7619047619047619,
+          "recall_at_10": 0.9047619047619048,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    },
+    {
+      "key": "minilm_full",
+      "label": "Guarded hybrid MiniLM-384",
+      "role": "encoder alternative",
+      "retained": false,
+      "strengths": "Smaller encoder footprint than Arctic-M.",
+      "weaknesses": "Weaker suite-macro transfer than Arctic-M 256 on revealed suites.",
+      "needs_query_embeddings": true,
+      "embedding_space_id": "76eaf6543d4c23168a12842a04d8eceb125b9b504b34c4ae1a418ee1fc8c0794",
+      "metrics": {
+        "suite_macro_r1": 0.6213414721210824,
+        "suite_macro_r3": 0.7433761988053592,
+        "suite_macro_r10": 0.8740414911591822,
+        "family_cell_r3": 0.6756798264610765,
+        "family_cell_r10": 0.7929523273273273,
+        "meaning_only_r3": 0.5483870967741935,
+        "multi_intent_r3": 0.21428571428571427,
+        "hard_negative_rate": 0.9523809523809523,
+        "confidence_safety": 1.0,
+        "pooled_r1": 0.6022727272727273,
+        "pooled_r3": 0.7310606060606061,
+        "pooled_r10": 0.8636363636363636,
+        "engine_data_bytes": 43412224
+      },
+      "by_suite": {
+        "semantic": {
+          "retrieval_queries": 40,
+          "recall_at_1": 0.5,
+          "recall_at_3": 0.65,
+          "recall_at_10": 0.8,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.9375
+        },
+        "tot": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.7142857142857143,
+          "recall_at_3": 0.8214285714285714,
+          "recall_at_10": 0.9285714285714286,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "overlay": {
+          "retrieval_queries": 29,
+          "recall_at_1": 0.6896551724137931,
+          "recall_at_3": 0.7931034482758621,
+          "recall_at_10": 0.9310344827586207,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 1.0
+        },
+        "diagnostic": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.5714285714285714,
+          "recall_at_3": 0.6785714285714286,
+          "recall_at_10": 0.75,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "confirmation": {
+          "retrieval_queries": 28,
+          "recall_at_1": 0.6428571428571429,
+          "recall_at_3": 0.7857142857142857,
+          "recall_at_10": 0.9642857142857143,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "revealed-v2": {
+          "retrieval_queries": 23,
+          "recall_at_1": 0.6086956521739131,
+          "recall_at_3": 0.6956521739130435,
+          "recall_at_10": 0.9130434782608695,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "family": {
+          "retrieval_queries": 25,
+          "recall_at_1": 0.72,
+          "recall_at_3": 0.84,
+          "recall_at_10": 0.88,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        },
+        "redteam": {
+          "retrieval_queries": 63,
+          "recall_at_1": 0.5238095238095238,
+          "recall_at_3": 0.6825396825396826,
+          "recall_at_10": 0.8253968253968254,
+          "confidence_safety": 1.0,
+          "hard_negative_accuracy": 0.0
+        }
+      },
+      "retrieval_queries": 264,
+      "total_prompts": 283
+    }
+  ],
+  "majority": {
+    "retained_key": "arctic_passage",
+    "comparable_cells": 60,
+    "ties": 12,
+    "wins": 51,
+    "losses": 9,
+    "win_rate": 0.85,
+    "majority": true,
+    "cells": [
+      {
+        "competitor": "keyword",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.46368588027414864,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.5144210037838224,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.6122213446848004,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.462273331023331,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.5552109501328251,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.12903225806451613,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.0,
+        "winner": "retained"
+      },
+      {
+        "competitor": "keyword",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8095238095238095,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.5413086760191332,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.6668778705885152,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.7189557304680992,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.6011975015881267,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.6516977614633865,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.5161290322580645,
+        "winner": "retained"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.2857142857142857,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8571428571428571,
+        "winner": "tie"
+      },
+      {
+        "competitor": "lexical",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 0.9929328621908127,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.5272709776064349,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.6686635848742295,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.7270807304680993,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.6020984024890276,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.6602844731750982,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.5483870967741935,
+        "winner": "retained"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.35714285714285715,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8571428571428571,
+        "winner": "tie"
+      },
+      {
+        "competitor": "expanded",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 0.9929328621908127,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.6344001362414031,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.7314779515004403,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.777261339568311,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.658425192018942,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.7026153557403557,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.5161290322580645,
+        "winner": "retained"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.2857142857142857,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8571428571428571,
+        "winner": "tie"
+      },
+      {
+        "competitor": "knowledge",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 1.0,
+        "winner": "tie"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.619563655672164,
+        "winner": "retained"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.7344490106137407,
+        "winner": "retained"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.7896966843958972,
+        "winner": "retained"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.6615431537306538,
+        "winner": "retained"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.7151083174520674,
+        "winner": "retained"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.5483870967741935,
+        "winner": "retained"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.35714285714285715,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8571428571428571,
+        "winner": "tie"
+      },
+      {
+        "competitor": "hybrid_no_dense",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 1.0,
+        "winner": "tie"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.6473338777040052,
+        "winner": "retained"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.7871563028009804,
+        "winner": "retained"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.886208324409224,
+        "winner": "retained"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.7105708773677524,
+        "winner": "retained"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.8106629165222915,
+        "winner": "retained"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.7096774193548387,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.2857142857142857,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8571428571428571,
+        "winner": "tie"
+      },
+      {
+        "competitor": "dense_only",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 0.9929328621908127,
+        "winner": "retained"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.6727002570143499,
+        "winner": "retained"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.8187080269389114,
+        "winner": "retained"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.9127600485471551,
+        "winner": "retained"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.7383920579233079,
+        "winner": "retained"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.8317132637445137,
+        "winner": "retained"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.6774193548387096,
+        "winner": "tie"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.2857142857142857,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.8571428571428571,
+        "winner": "tie"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 1.0,
+        "winner": "tie"
+      },
+      {
+        "competitor": "arctic_full",
+        "metric": "engine_data_size_near_quality",
+        "retained": 28900288,
+        "competitor_value": 27496192,
+        "winner": "competitor",
+        "rule": "strictly smaller when |\u0394 suite_macro_r3| \u2264 0.01"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "suite_macro_r1",
+        "retained": 0.6781350396230456,
+        "competitor_value": 0.6213414721210824,
+        "winner": "retained"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "suite_macro_r3",
+        "retained": 0.828001936531734,
+        "competitor_value": 0.7433761988053592,
+        "winner": "retained"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "suite_macro_r10",
+        "retained": 0.9226591168701365,
+        "competitor_value": 0.8740414911591822,
+        "winner": "retained"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "family_cell_r3",
+        "retained": 0.7478341923654422,
+        "competitor_value": 0.6756798264610765,
+        "winner": "retained"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "family_cell_r10",
+        "retained": 0.8410882637445137,
+        "competitor_value": 0.7929523273273273,
+        "winner": "retained"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "meaning_only_r3",
+        "retained": 0.6774193548387096,
+        "competitor_value": 0.5483870967741935,
+        "winner": "retained"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "multi_intent_r3",
+        "retained": 0.21428571428571427,
+        "competitor_value": 0.21428571428571427,
+        "winner": "tie"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "hard_negative_rate",
+        "retained": 0.8571428571428571,
+        "competitor_value": 0.9523809523809523,
+        "winner": "competitor"
+      },
+      {
+        "competitor": "minilm_full",
+        "metric": "confidence_safety",
+        "retained": 1.0,
+        "competitor_value": 1.0,
+        "winner": "tie"
+      }
+    ]
+  },
+  "baseline_arctic_suite_macro_r3_reference": 0.842,
+  "notes": [
+    "Revealed suites only; not a sealed generalization claim.",
+    "No prompt-specific aliases added to production data.",
+    "Optional bsb-passage-semantic.pack is the matrix-retained depth profile; lexical/recall/verse-LVEC tiers remain modular.",
+    "Suite-macro R@3 82.80% is within 2 points of historical Arctic bake-off 84.20% under current normalizer-v2 packs."
+  ],
+  "deliberate_profile_split": true
+}

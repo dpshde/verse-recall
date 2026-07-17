@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verse Recall browser portability smoke</title>
+    <style>
+      :root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; }
+      body { max-width: 52rem; margin: 3rem auto; padding: 0 1.25rem; background: #111318; color: #eef1f6; }
+      h1 { line-height: 1.15; }
+      #status { padding: 1rem 1.25rem; border: 1px solid #394255; border-radius: .75rem; background: #191d25; }
+      .pass { color: #69db9b; }
+      .fail { color: #ff7b88; }
+      code { font-family: ui-monospace, monospace; }
+      dt { color: #aab6ca; margin-top: .65rem; }
+      dd { margin-left: 0; font-family: ui-monospace, monospace; overflow-wrap: anywhere; }
+    </style>
+  </head>
+  <body>
+    <h1>Verse Recall browser portability smoke</h1>
+    <p>
+      This page executes the compiled Rust/WASM ABI and validates the canonical
+      indexed pack in an ordinary browser. Full pack open/search is exercised by
+      <code>test/wasm-e2e.mjs</code> after pinned wasm-bindgen glue generation.
+    </p>
+    <div id="status" role="status">Running…</div>
+    <dl id="evidence" hidden></dl>
+    <script type="module">
+      const status = document.querySelector("#status");
+      const evidence = document.querySelector("#evidence");
+      const row = (label, value) => {
+        const term = document.createElement("dt");
+        term.textContent = label;
+        const detail = document.createElement("dd");
+        detail.textContent = String(value);
+        evidence.append(term, detail);
+      };
+
+      try {
+        const [wasmResponse, packResponse] = await Promise.all([
+          fetch("/target/wasm32-unknown-unknown/release/recall_wasm.wasm"),
+          fetch("/data/bsb-full.pack"),
+        ]);
+        if (!wasmResponse.ok || !packResponse.ok) {
+          throw new Error(`HTTP ${wasmResponse.status}/${packResponse.status}`);
+        }
+
+        const [wasmBytes, packBytes] = await Promise.all([
+          wasmResponse.arrayBuffer(),
+          packResponse.arrayBuffer(),
+        ]);
+        const module = await WebAssembly.compile(wasmBytes);
+        const imports = {};
+        for (const entry of WebAssembly.Module.imports(module)) {
+          imports[entry.module] ??= {};
+          if (entry.kind !== "function") {
+            throw new Error(`unexpected WASM import kind ${entry.kind}`);
+          }
+          imports[entry.module][entry.name] = () => 0;
+        }
+        const instance = await WebAssembly.instantiate(module, imports);
+        if (instance.exports.abiVersion() !== 1) {
+          throw new Error("unexpected WASM ABI version");
+        }
+
+        const bytes = new Uint8Array(packBytes);
+        const view = new DataView(packBytes);
+        const magic = new TextDecoder().decode(bytes.subarray(0, 8));
+        const sectionCount = view.getUint32(16, true);
+        const tags = [];
+        for (let index = 0; index < sectionCount; index += 1) {
+          const offset = 64 + index * 32;
+          tags.push(
+            new TextDecoder()
+              .decode(bytes.subarray(offset, offset + 8))
+              .replaceAll("\0", ""),
+          );
+        }
+        if (
+          magic !== "VRCALL01" ||
+          packBytes.byteLength !== 6_433_152 ||
+          tags.join(",") !== "META,TEXT,LEX,POST"
+        ) {
+          throw new Error("canonical pack identity/sections do not match");
+        }
+
+        row("Result", "PASS");
+        row("WASM bytes", wasmBytes.byteLength);
+        row("WASM ABI", instance.exports.abiVersion());
+        row("WASM imports", WebAssembly.Module.imports(module).length);
+        row("Canonical pack bytes", packBytes.byteLength);
+        row("Canonical pack magic", magic);
+        row("Canonical sections", tags.join(" + "));
+        status.textContent = "PASS — real Rust/WASM ABI executed; indexed BSB pack validated.";
+        status.className = "pass";
+        evidence.hidden = false;
+        document.documentElement.dataset.smoke = "pass";
+      } catch (error) {
+        status.textContent = `FAIL — ${error instanceof Error ? error.message : error}`;
+        status.className = "fail";
+        document.documentElement.dataset.smoke = "fail";
+        console.error(error);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+.gradle/
+local.properties
+**/build/
+verse-recall/src/main/jniLibs/
+.cxx/

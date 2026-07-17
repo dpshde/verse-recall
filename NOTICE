@@ -1,0 +1,27 @@
+# NOTICE
+
+verse-recall engine and tooling code are licensed under the MIT License
+(see `LICENSE`).
+
+This repository may also contain or build **data artifacts** derived from
+third-party sources. Those materials retain their original rights and terms.
+Do not assume the MIT license applies to Bible text, study databases, topic
+corpora, or third-party model weights.
+
+## Third-party materials (summary)
+
+| Material | Role in project | Notes |
+|---|---|---|
+| Berean Standard Bible (BSB) | Canonical display corpus | Use under BSB source permissions; generated indexes do not relicense the text |
+| King James Version (KJV) | Hidden translation evidence | Public domain in the project’s usage; results still display BSB |
+| Selah topical artifacts | Topic overlay inputs | Rights remain with the source repository |
+| Theographic / Study Bible graph | Entity/place/event evidence | Attribution and CC BY-SA 4.0 terms as applicable |
+| BibleAquifer-derived corrections | Reviewed misconception records | Source attribution and license as recorded per row |
+| Snowflake Arctic-embed-m-v1.5 | Host/build dense encoder | Apache-2.0; **not vendored** in this repository by default |
+| studybible-mcp `study_bible.db` | Build-time source only | Not an application dependency; redistribution per upstream |
+
+Exact measured packs, hashes, and license boundaries:
+[`ARTIFACTS.md`](./ARTIFACTS.md).
+
+ESV is an optional host adapter boundary only. No ESV text is distributed by
+default; see Crossway permissions if you supply your own licensed index.

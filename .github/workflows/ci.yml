@@ -1,0 +1,180 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+permissions:
+  contents: read
+
+jobs:
+  rust-test:
+    name: Rust + C ABI (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - name: Test Rust workspace
+        run: cargo test --workspace --locked
+      - name: Check WASM target
+        run: cargo check --locked --target wasm32-unknown-unknown -p recall-wasm
+      - name: Build C ABI
+        run: cargo build --locked -p recall-ffi
+      - name: Verify checked-in C headers agree
+        run: cmp crates/recall-ffi/include/recall.h bindings/swift/Sources/CVerseRecall/include/recall.h
+      - name: Compile and run hardened C ABI smoke test
+        run: |
+          cc -std=c11 -Wall -Wextra -Werror -I crates/recall-ffi/include \
+            crates/recall-ffi/tests/c_abi_smoke.c \
+            -L target/debug -lrecall_ffi \
+            -o /tmp/recall-c-abi-smoke \
+            -lm -ldl -lpthread
+          case "$(uname -s)" in
+            Darwin) DYLD_LIBRARY_PATH=target/debug /tmp/recall-c-abi-smoke ;;
+            *) LD_LIBRARY_PATH=target/debug /tmp/recall-c-abi-smoke ;;
+          esac
+
+  rust-quality:
+    name: Rust format and Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Lint all workspace targets
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+  python-builders:
+    name: Python artifact builders
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependency
+        run: python -m pip install "numpy==2.0.2"
+      - name: Run all builder contract tests
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+
+  javascript-sdk:
+    name: JavaScript + WASM SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned wasm-pack
+        env:
+          RUSTFLAGS: ""
+        run: cargo install wasm-pack --locked --version 0.13.1
+      - name: Build distributable WASM package
+        working-directory: bindings/js
+        run: |
+          npm run build
+          node --check ./pkg/recall_wasm.js
+      - name: Exercise the real WASM engine
+        run: |
+          cargo run --locked -p recall-packer --release -- pack --input data/bsb.jsonl --output /tmp/bsb-wasm.pack
+          VERSE_RECALL_PACK=/tmp/bsb-wasm.pack npm --prefix bindings/js run test:wasm
+      - name: Check wrapper syntax and behavior
+        working-directory: bindings/js
+        run: npm run check
+      - name: Inspect npm package contents
+        working-directory: bindings/js
+        run: npm pack --dry-run --ignore-scripts
+
+  swift-sdk:
+    name: Swift SDK + native integration
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build canonical BSB test pack
+        run: cargo run --locked -p recall-packer -- pack --input data/bsb.jsonl --output data/bsb-full.pack
+      - name: Run Swift unit and native integration tests
+        run: bindings/swift/scripts/test-local.sh
+
+  kotlin-sdk:
+    name: Kotlin SDK unit contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Compile-check JNI bridge with warnings denied
+        run: >-
+          c++ -std=c++17 -Wall -Wextra -Werror -fsyntax-only
+          -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux"
+          -Icrates/recall-ffi/include
+          bindings/kotlin/verse-recall/src/main/cpp/recall_jni.cpp
+      - name: Run host-side Kotlin tests
+        working-directory: bindings/kotlin
+        run: gradle --no-daemon :verse-recall:testDebugUnitTest
+
+  retrieval-gate:
+    name: Release artifacts and revealed compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build canonical BSB pack twice
+        run: |
+          cargo run --locked -p recall-packer --release -- pack --input data/bsb.jsonl --output /tmp/bsb-full-a.pack
+          cargo run --locked -p recall-packer --release -- pack --input data/bsb.jsonl --output /tmp/bsb-full-b.pack
+      - name: Enforce deterministic output and base-pack budget
+        run: |
+          cmp /tmp/bsb-full-a.pack /tmp/bsb-full-b.pack
+          cmp /tmp/bsb-full-a.pack data/bsb-full.pack
+          python3 -c 'from pathlib import Path; size = Path("/tmp/bsb-full-a.pack").stat().st_size; assert size <= 7 * 1024 * 1024, f"base pack exceeds 7 MiB budget: {size} bytes"; print(f"base pack: {size} bytes")'
+      - name: Verify the exact six-artifact release contract
+        run: python3 scripts/verify_release_artifacts.py
+      - name: Verify every reviewed correction and structured passage end to end
+        run: |
+          cargo build --locked --release -p recall-cli
+          python3 scripts/verify_reviewed_correction_runtime.py \
+            --reviewed data/reviewed-corrections-v2.jsonl \
+            --cli target/release/recall-cli \
+            --pack /tmp/bsb-full-a.pack \
+            --overlay data/recall-overlay.pack
+      - name: Enforce revealed confirmation-suite compatibility bars
+        run: >-
+          cargo run --locked -p recall-eval --release --
+          --pack /tmp/bsb-full-a.pack
+          --overlay data/bsb-expand.pack
+          --overlay data/recall-overlay.pack
+          --overlay data/bsb-semantic.pack
+          --prompts eval/overfit-confirmation-v1.jsonl
+          --query-embeddings eval/ci-compatibility-arctic-m256-query.jsonl
+          --embedding-space-id 36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744
+          --baseline false
+          --compatibility-gate

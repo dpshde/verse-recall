@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://selah.tools/schemas/verse-recall-eval-case.schema.json",
+  "title": "Verse Recall evaluation case",
+  "description": "Schema for each non-comment line in a verse-recall JSONL corpus.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "prompt", "category", "gold_refs"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable case identifier."
+    },
+    "prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The user query exactly as submitted to search."
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Primary failure-mode category, such as event-name, paraphrase, or translation-drift."
+    },
+    "gold_refs": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "description": "Accepted verse, chapter, or passage ranges. Empty means the query is not scripture."
+    },
+    "gold_mode": {
+      "type": "string",
+      "enum": ["any", "all"],
+      "default": "any",
+      "description": "Whether any accepted gold is sufficient or every independently remembered gold must be retrieved."
+    },
+    "must_not": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "description": "Hard-negative passages that must rank below the completed gold target."
+    },
+    "expected_confidence": {
+      "type": "string",
+      "enum": ["recovered", "related", "often-misremembered"],
+      "description": "Optional required UX confidence label on the relevant result."
+    },
+    "expected_passages": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "description": "Optional structured passage ranges; every listed range must be covered by top-three structured output."
+    },
+    "family": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable semantic/passage family. Every case in a family must use the same split."
+    },
+    "split": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Dataset partition, for example dev, regression, or holdout-v1."
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true,
+      "description": "Secondary query forms, translations, and provenance labels."
+    },
+    "source": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable source for the query form."
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

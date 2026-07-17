@@ -1,0 +1,5 @@
+module CVerseRecall [system] {
+    header "include/recall.h"
+    link "recall_ffi"
+    export *
+}

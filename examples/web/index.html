@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Verse Recall — Manual Search Lab</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f4f0e8;
+        color: #211d18;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 14% 8%, rgba(182, 131, 74, .16), transparent 29rem),
+          linear-gradient(rgba(91, 73, 52, .035) 1px, transparent 1px);
+        background-size: auto, 100% 2rem;
+      }
+      main { position: relative; width: min(960px, calc(100% - 32px)); margin: 0 auto; padding: 64px 0 96px; }
+      .eyebrow { color: #9b5d31; font-size: .72rem; font-weight: 760; letter-spacing: .16em; text-transform: uppercase; }
+      h1 { margin: 10px 0 10px; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.6rem, 7vw, 5.5rem); line-height: .92; letter-spacing: -.045em; font-weight: 500; }
+      .lede { max-width: 670px; margin: 0 0 32px; color: #6e6459; font-size: 1.03rem; line-height: 1.6; }
+      .search-shell { padding: 18px; background: rgba(255, 253, 248, .9); border: 1px solid #d8ccbc; border-radius: 20px; box-shadow: 0 18px 55px rgba(69, 49, 27, .1); backdrop-filter: blur(10px); }
+      form { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+      input, select, button { font: inherit; }
+      #query { width: 100%; min-width: 0; border: 1px solid #cbbba7; border-radius: 12px; padding: 15px 16px; background: #fffefa; color: #211d18; font-size: 1.05rem; outline: none; }
+      #query:focus { border-color: #9b5d31; box-shadow: 0 0 0 3px rgba(155, 93, 49, .12); }
+      button { border: 0; border-radius: 12px; padding: 0 22px; background: #2e3a2d; color: #fff; font-weight: 700; cursor: pointer; }
+      button:hover { background: #3c4b3b; }
+      button:disabled { cursor: wait; opacity: .65; }
+      .options { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; margin-top: 13px; color: #72675b; font-size: .82rem; }
+      .options label { display: flex; align-items: center; gap: 7px; }
+      select, #book-hint { border: 1px solid #d8ccbc; border-radius: 8px; padding: 6px 9px; background: #fffefa; }
+      #book-hint { width: 110px; }
+      .samples { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+      .sample { padding: 7px 10px; border: 1px solid #d9c9b5; border-radius: 999px; background: transparent; color: #795137; font-size: .8rem; font-weight: 650; }
+      .sample:hover { background: #f4e9da; }
+      #meta { min-height: 24px; margin: 24px 2px 10px; color: #766b60; font-size: .85rem; }
+      #results { display: grid; gap: 12px; }
+      article { position: relative; padding: 20px 22px; background: rgba(255, 253, 248, .84); border: 1px solid #ded4c6; border-radius: 16px; animation: rise .22s ease both; }
+      article:first-child { border-color: #b98b58; box-shadow: 0 10px 30px rgba(73, 50, 27, .07); }
+      .result-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+      .reference { font-family: Georgia, "Times New Roman", serif; font-size: 1.3rem; font-weight: 700; color: #2f3d2f; }
+      .rank { color: #a69a8c; font-size: .75rem; }
+      .verse { margin: 11px 0 14px; color: #403930; font-family: Georgia, "Times New Roman", serif; font-size: 1.05rem; line-height: 1.62; }
+      .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+      .badge { padding: 4px 7px; border-radius: 6px; background: #ece6dc; color: #6c6256; font-size: .68rem; letter-spacing: .025em; }
+      .recovered { background: #dfeade; color: #355037; }
+      .related { background: #eee5d7; color: #78593e; }
+      .passage { background: #e4e2ef; color: #514c72; }
+      .error { padding: 18px; border: 1px solid #d9a59e; border-radius: 14px; background: #f9e8e5; color: #7f372f; }
+      .empty { padding: 44px 20px; text-align: center; color: #887d70; border: 1px dashed #cfc2b1; border-radius: 16px; }
+      code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .92em; }
+      @keyframes rise { from { opacity: 0; transform: translateY(5px); } }
+      @media (max-width: 640px) { main { padding-top: 38px; } form { grid-template-columns: 1fr; } form > button { height: 48px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Local red-team console · BSB output</div>
+      <h1>Verse Recall</h1>
+      <p class="lede">Try fragments, remembered wording, translation drift, topics, events, situations, and blended memories. This UI queries the real release engine with lexical, expansion, KJV, topic, entity, and event packs.</p>
+
+      <section class="search-shell" aria-label="Search controls">
+        <form id="search-form">
+          <input id="query" name="q" type="search" autocomplete="off" autofocus required maxlength="500" placeholder="e.g. the fall, strength in weakness, lost sheep…" aria-label="Bible search query" />
+          <button id="submit" type="submit">Search</button>
+        </form>
+        <div class="options">
+          <label>Results <select id="top-k"><option>3</option><option selected>5</option><option>10</option></select></label>
+          <label>Book hint <input id="book-hint" placeholder="optional" aria-label="Optional book hint" /></label>
+          <span>Engine: <code>release / recall tier</code></span>
+        </div>
+        <div class="samples" aria-label="Sample red-team queries">
+          <button class="sample" type="button">the fall</button>
+          <button class="sample" type="button">God helps those who help themselves</button>
+          <button class="sample" type="button">depend on God rather than my own judgment</button>
+          <button class="sample" type="button">protective equipment for resisting evil powers</button>
+          <button class="sample" type="button">lost sheep and the Lord is my shepherd</button>
+        </div>
+      </section>
+
+      <div id="meta" role="status" aria-live="polite">Ready for a query.</div>
+      <section id="results" aria-label="Search results"><div class="empty">Search for a verse you can almost remember.</div></section>
+    </main>
+
+    <script>
+      const form = document.querySelector("#search-form");
+      const query = document.querySelector("#query");
+      const submit = document.querySelector("#submit");
+      const results = document.querySelector("#results");
+      const meta = document.querySelector("#meta");
+      const topK = document.querySelector("#top-k");
+      const bookHint = document.querySelector("#book-hint");
+
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+
+      async function search(value) {
+        const trimmed = value.trim();
+        if (!trimmed) return;
+        submit.disabled = true;
+        meta.textContent = `Searching for “${trimmed}”…`;
+        results.innerHTML = "";
+        const params = new URLSearchParams({ q: trimmed, top_k: topK.value });
+        if (bookHint.value.trim()) params.set("book_hint", bookHint.value.trim());
+        const started = performance.now();
+        try {
+          const response = await fetch(`/api/search?${params}`);
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`);
+          const elapsed = Math.round(performance.now() - started);
+          meta.textContent = `${body.results.length} results · ${elapsed} ms browser round trip · ${body.engine}`;
+          if (!body.results.length) {
+            results.innerHTML = '<div class="empty">No candidates returned.</div>';
+            return;
+          }
+          results.innerHTML = body.results.map((result, index) => {
+            const confidence = escapeHtml(result.confidence || "related");
+            const passages = (result.passages || []).map((p) => `<span class="badge passage">${escapeHtml(p.start_ref)}–${escapeHtml(p.end_ref)}</span>`).join("");
+            const matched = (result.matched_terms || []).slice(0, 6).map((term) => `<span class="badge">${escapeHtml(term)}</span>`).join("");
+            const activeLanes = Object.entries(result.lanes || {}).filter(([, score]) => score > 0).map(([lane]) => lane.toUpperCase()).join("+") || "—";
+            return `<article style="animation-delay:${Math.min(index * 25, 150)}ms">
+              <div class="result-head"><span class="reference">${escapeHtml(result.ref)}</span><span class="rank">#${index + 1} · score ${Number(result.score).toFixed(3)} · lane ${activeLanes}</span></div>
+              <p class="verse">${escapeHtml(result.text)}</p>
+              <div class="badges"><span class="badge ${confidence}">${confidence}</span>${passages}${matched}</div>
+            </article>`;
+          }).join("");
+        } catch (error) {
+          meta.textContent = "Search failed.";
+          results.innerHTML = `<div class="error"><strong>Unable to search</strong><br>${escapeHtml(error.message || error)}</div>`;
+        } finally {
+          submit.disabled = false;
+        }
+      }
+
+      form.addEventListener("submit", (event) => { event.preventDefault(); search(query.value); });
+      document.querySelectorAll(".sample").forEach((button) => button.addEventListener("click", () => { query.value = button.textContent; search(query.value); }));
+    </script>
+  </body>
+</html>

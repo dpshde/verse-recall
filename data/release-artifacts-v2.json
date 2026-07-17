@@ -1,0 +1,54 @@
+{
+  "schema": "verse-recall-release-artifacts-v1",
+  "canonical_translation": "BSB",
+  "canonical_verse_count": 31086,
+  "artifacts": [
+    {
+      "filename": "bsb-full.pack",
+      "role": "canonical-index",
+      "required": true,
+      "bytes": 6433344,
+      "sha256": "3782f460405389b0156e6f8e29df6b98e8b13d3118689f9afbca76e88d10b69b"
+    },
+    {
+      "filename": "bsb-expand.pack",
+      "role": "weighted-expansion",
+      "required": false,
+      "bytes": 5628672,
+      "sha256": "e7b26a3069e19a35f47eb389177cb867ab449f1e1955a8a1ecfdf43045206061"
+    },
+    {
+      "filename": "bsb-expand.provenance.json",
+      "role": "expansion-provenance",
+      "required": false,
+      "bytes": 667,
+      "sha256": "2b45a28ad9426f73df4c2aef89501b2fda91dff2326d1059243cd5ccb97befd3"
+    },
+    {
+      "filename": "recall-overlay.pack",
+      "role": "knowledge-kjv-and-reviewed-corrections",
+      "required": false,
+      "bytes": 7475904,
+      "sha256": "607b71dbe42f96ba47d79cec007ad86a653cd67051a9f105fd39ec812107b676"
+    },
+    {
+      "filename": "bsb-semantic.pack",
+      "role": "dense-arctic-m-v1.5-matryoshka-256d-v2",
+      "required": false,
+      "bytes": 7958272,
+      "sha256": "9551d428dedde6168326e2dcc5c7818abcbd86de8334b9310b6c90a2cc0afd8d",
+      "lvec_version": 2,
+      "dimensions": 256,
+      "table_count": 1,
+      "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+      "contract": "semantic-space-arctic-m-v1.5-m256.json"
+    },
+    {
+      "filename": "semantic-space-arctic-m-v1.5-m256.json",
+      "role": "embedding-space-contract",
+      "required": false,
+      "bytes": 677,
+      "sha256": "3742144c4fcba0ec13918788a196f8f796c1b5eae449b125fabbc6f6e5d04813"
+    }
+  ]
+}

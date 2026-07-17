@@ -1,0 +1,109 @@
+{
+  "schema": "verse-recall-revealed-regression-summary-v1",
+  "date": "2026-07-16",
+  "candidate": "release-candidate-v3-pre-holdout",
+  "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+  "query_adapter": null,
+  "artifacts_manifest": "data/release-artifacts-v2.json",
+  "suites": [
+    {
+      "name": "semantic",
+      "prompt_sha256": "f47e0d037c423a8c199f0d7733a5d5afec2f57fa0e62cfe879ba7c95b010915d",
+      "query_sha256": "79522dc2bc30e09487ac476a242dc66e8946c9a41ac4ee5dbdd899adf926875a",
+      "report_sha256": "c6e66f02c9544076b259456462a886492ccc3e9f26fc18bbaf2054a0931c9986",
+      "retrieval_queries": 40,
+      "recall_at_1": 0.725,
+      "recall_at_3": 0.825,
+      "recall_at_10": 0.875,
+      "confidence_safety": [43, 43],
+      "passages": [2, 2],
+      "hard_negatives": [14, 16],
+      "required_labels": [0, 2]
+    },
+    {
+      "name": "tot",
+      "prompt_sha256": "1f1c626cd8650e21e3c85f559f84040b2818d77dd67bced707db3f890a208918",
+      "query_sha256": "5719c87fc35938011a49999061fe77c3092e5f42112dc00e1c379fffe59ebc2d",
+      "report_sha256": "d6f2ef50fb168c4373ddc299ee09538d969482a4483a4e6ce951b6388a07ef21",
+      "retrieval_queries": 28,
+      "recall_at_1": 0.75,
+      "recall_at_3": 0.8928571428571429,
+      "recall_at_10": 0.9642857142857143,
+      "confidence_safety": [30, 30],
+      "required_labels": [0, 2]
+    },
+    {
+      "name": "overlay",
+      "prompt_sha256": "882b669bce9ac5ce379f48e4d5a197028d7bf03e57c96a4a47d85f6e17345b74",
+      "query_sha256": "ccca6c78f7eedd9a36016bf8c7673e940c6031a79dc35ea7471d3ae4e22800ea",
+      "report_sha256": "8e23c94d9329731565d8182a457f99b31a5c7f6272f80e53130552689e800e5f",
+      "retrieval_queries": 29,
+      "recall_at_1": 0.7241379310344828,
+      "recall_at_3": 0.896551724137931,
+      "recall_at_10": 1.0,
+      "confidence_safety": [35, 35],
+      "passages": [8, 12],
+      "hard_negatives": [5, 5],
+      "required_labels": [1, 1]
+    },
+    {
+      "name": "diagnostic",
+      "prompt_sha256": "acd45841777e012cc8f7e58e042a216f4e9e9e02a8a39aecabf8c2288442f4fa",
+      "query_sha256": "c854cad2d11688e40b9bd1add48af0ef5b822bdf47e172785df5fa6d9c5cbd03",
+      "report_sha256": "66a6c981a22ea5fde921b4c18477ae9592c2f50247c3341354d592c544793471",
+      "retrieval_queries": 28,
+      "recall_at_1": 0.5714285714285714,
+      "recall_at_3": 0.6785714285714286,
+      "recall_at_10": 0.7857142857142857,
+      "confidence_safety": [30, 30],
+      "required_labels": [0, 1]
+    },
+    {
+      "name": "confirmation",
+      "prompt_sha256": "0c2e1e3f506d05e39864509dea1acb8ea75b60aadb616d8dbe7fbff2523e9271",
+      "query_sha256": "cea507ade1feeb02b73ada0299d9035be91ff25a913ab638e46f5ab6d42914d0",
+      "report_sha256": "d151895fafb9ecd25e5414cae43d73c9dc7b5710195411d429fd8277e6ea1a0b",
+      "retrieval_queries": 28,
+      "recall_at_1": 0.8214285714285714,
+      "recall_at_3": 0.9285714285714286,
+      "recall_at_10": 1.0,
+      "confidence_safety": [30, 30]
+    },
+    {
+      "name": "family",
+      "prompt_sha256": "52206614108b18724162aa0a02c5b88681903dba4e5180fb046a0bb398e0238a",
+      "query_sha256": "b444416d1813e2658ddd9f279c52ee7c9a1f38d553253eb92c6d4d2dc7b1567f",
+      "report_sha256": "e28412772c7f28187eaf0087078a2b8c1ab8722799eb82d7d8d5fead3e7147f0",
+      "retrieval_queries": 25,
+      "recall_at_1": 0.64,
+      "recall_at_3": 0.84,
+      "recall_at_10": 0.92,
+      "confidence_safety": [25, 25],
+      "passages": [1, 2]
+    },
+    {
+      "name": "redteam",
+      "prompt_sha256": "fc5f88604c0b9502d28d042d9029bad9ddf251d1de07917d696145d1e08b1db5",
+      "query_sha256": "5c38599a1a73754f021546dd91c6611f938cb5d56e97e8560fb20df66c73701d",
+      "report_sha256": "1fa127609b1858f0d273ce12ea45b4bcf4456e12ef55770154f678ce5d11a00a",
+      "retrieval_queries": 63,
+      "recall_at_1": 0.5873015873015873,
+      "recall_at_3": 0.746031746031746,
+      "recall_at_10": 0.9047619047619048,
+      "confidence_safety": [66, 66],
+      "required_labels": [0, 2]
+    },
+    {
+      "name": "revealed-v2",
+      "prompt_sha256": "fe069a1633fbee94ed5f02cf9d75bc11c158dabedf9818c72d555b1dfa5e9361",
+      "query_sha256": "3b6d00c849944f03cfadad94b2f29b2911a2fa3c4f12cad6a06fcb0ec3997c73",
+      "report_sha256": "8fd6953ac1381ff495c5f983a3ee4e35b1aadb8e99308045d8d5565319ce5263",
+      "retrieval_queries": 23,
+      "recall_at_1": 0.6521739130434783,
+      "recall_at_3": 0.7391304347826086,
+      "recall_at_10": 0.8260869565217391,
+      "confidence_safety": [24, 24],
+      "required_labels": [0, 1]
+    }
+  ]
+}

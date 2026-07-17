@@ -1,0 +1,62 @@
+[
+  {
+    "query": "Jesus calms the storm; Paul and Silas sing in prison",
+    "segments": ["Jesus calms the storm", "Paul and Silas sing in prison"]
+  },
+  {
+    "query": "lost sheep and prodigal son",
+    "segments": ["lost sheep", "prodigal son"]
+  },
+  {
+    "query": "Élie prie — Jésus nourrit la foule",
+    "segments": ["Élie prie", "Jésus nourrit la foule"]
+  },
+  {
+    "query": "rain nourishes a field because another image describes a fruitful tree",
+    "segments": ["rain nourishes a field", "another image describes a fruitful tree"]
+  },
+  {
+    "query": "first meaningful image plus second meaningful picture while third meaningful scene",
+    "segments": ["first meaningful image", "second meaningful picture", "third meaningful scene"]
+  },
+  {
+    "query": "Jesus calms storms; Paul survives shipwrecks; Peter walks water; Philip meets travelers",
+    "segments": [
+      "Jesus calms storms",
+      "Paul survives shipwrecks",
+      "Peter walks water",
+      "Philip meets travelers"
+    ]
+  },
+  {
+    "query": "Ἰησοῦς διδάσκει — l’amour d’autrui demeure",
+    "segments": ["Ἰησοῦς διδάσκει", "l’amour d’autrui demeure"]
+  },
+  {
+    "query": "  first\t meaningful thought   AND THEN\nsecond meaningful memory  ",
+    "segments": ["first meaningful thought", "second meaningful memory"]
+  },
+  {
+    "query": "Mary remembers Dr. Luke writing carefully and Paul teaches the gathered church",
+    "segments": [
+      "Mary remembers Dr. Luke writing carefully",
+      "Paul teaches the gathered church"
+    ]
+  },
+  {
+    "query": "faith and hope",
+    "segments": []
+  },
+  {
+    "query": "walk by faith and not by sight",
+    "segments": []
+  },
+  {
+    "query": "the fall",
+    "segments": []
+  },
+  {
+    "query": "one image; two picture; three memory; four vision; five detail",
+    "segments": []
+  }
+]

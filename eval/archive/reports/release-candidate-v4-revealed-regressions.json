@@ -1,0 +1,42 @@
+{
+  "schema": "verse-recall-revealed-regression-summary-v1",
+  "date": "2026-07-16",
+  "candidate": "release-candidate-v4-frozen-pre-holdout",
+  "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+  "query_adapter": null,
+  "artifacts_manifest_sha256": "1bf3e2a1dd7fe80fde130ac414d0aee0b7898729ab3bb2bc0ddea91783401d33",
+  "evaluator_sha256": "956f5679289e49de46b381fbd9dd678f1ed89c30776b4b4e52d28ffd6c29d6fc",
+  "pooled": {
+    "total_prompts": 283,
+    "retrieval_prompts": 264,
+    "hits_at_1": 177,
+    "hits_at_3": 213,
+    "hits_at_10": 241,
+    "hits_at_100": 256,
+    "recall_at_1": 0.6704545454545454,
+    "recall_at_3": 0.8068181818181818,
+    "recall_at_10": 0.9128787878787878,
+    "recall_at_100": 0.9696969696969697,
+    "confidence_safety": [283, 283],
+    "no_gold_safety": [19, 19],
+    "hard_negatives": [19, 21],
+    "structured_passages": [12, 16],
+    "required_labels": [1, 9]
+  },
+  "suite_macro": {
+    "recall_at_1": 0.6825993253373314,
+    "recall_at_3": 0.8152142381190356,
+    "recall_at_10": 0.9127600485471551,
+    "recall_at_100": 0.9710235507246376
+  },
+  "suites": [
+    {"name":"confirmation","retrieval_prompts":28,"hits_at_1":23,"hits_at_3":26,"hits_at_10":28,"hits_at_100":28,"report_sha256":"83db644992d89f70eff8c531ae409ab0e77e082c0c3f79f2e5b52a0896c3b91d"},
+    {"name":"diagnostic","retrieval_prompts":28,"hits_at_1":17,"hits_at_3":20,"hits_at_10":23,"hits_at_100":27,"report_sha256":"d4a0197ad900defa9cb2f13f8c1e36657b8db3b78f4f5f26109b0cb0dfb9a3a3"},
+    {"name":"family","retrieval_prompts":25,"hits_at_1":15,"hits_at_3":21,"hits_at_10":23,"hits_at_100":23,"report_sha256":"73e21346a69c22f982f5d62d6a21e91890a6d7e2d162a7a3f6062acae2329a58"},
+    {"name":"overlay","retrieval_prompts":29,"hits_at_1":22,"hits_at_3":26,"hits_at_10":28,"hits_at_100":29,"report_sha256":"3e668a02acedf0e14fe112a9900229a4a719e98287255f1655e65afacb14e157"},
+    {"name":"redteam","retrieval_prompts":63,"hits_at_1":36,"hits_at_3":47,"hits_at_10":57,"hits_at_100":60,"report_sha256":"2ba78983b78bd31d59404bc5dc9cf42f52614fd3148a59f291b356de34f68476"},
+    {"name":"semantic","retrieval_prompts":40,"hits_at_1":28,"hits_at_3":32,"hits_at_10":36,"hits_at_100":39,"report_sha256":"a3a754edf1b8479ef6c782d13e46d72774d320df65d3845ce5d8bfcfdd81633a"},
+    {"name":"tot","retrieval_prompts":28,"hits_at_1":21,"hits_at_3":24,"hits_at_10":27,"hits_at_100":28,"report_sha256":"78d9807d17dd7aa426d7bc871c2997b685bf76f41280cc4151a526f119f11158"},
+    {"name":"revealed-v2","retrieval_prompts":23,"hits_at_1":15,"hits_at_3":17,"hits_at_10":19,"hits_at_100":22,"report_sha256":"6414051cc9d374006030c94f1726950eced9ed9d5ca8821d16366125d2ab3107"}
+  ]
+}

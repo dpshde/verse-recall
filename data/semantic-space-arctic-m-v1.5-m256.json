@@ -1,0 +1,20 @@
+{
+  "contract": {
+    "corpus_prefix": "",
+    "encoder_assets": [
+      {
+        "name": "model_quantized.onnx",
+        "sha256": "a18f437b2466863901a0bdc14904cf93246f5ecce0b656fc773bc2b7b2f84f6e"
+      }
+    ],
+    "max_length": 128,
+    "output_normalization": "l2-f32-v1",
+    "pooling": "cls",
+    "projection_sha256": null,
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "schema": "verse-recall-embedding-space-v1",
+    "tokenizer_sha256": "91f1def9b9391fdabe028cd3f3fcc4efd34e5d1f08c3bf2de513ebb5911a1854",
+    "truncate_dims": 256
+  },
+  "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744"
+}

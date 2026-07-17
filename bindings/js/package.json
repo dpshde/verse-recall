@@ -1,0 +1,48 @@
+{
+  "name": "@selah-tools/verse-recall",
+  "version": "0.1.0",
+  "description": "Portable tip-of-the-tongue scripture engine (WASM)",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./raw": {
+      "types": "./pkg/recall_wasm.d.ts",
+      "import": "./pkg/recall_wasm.js"
+    },
+    "./wasm": "./pkg/recall_wasm_bg.wasm",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "pkg",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run build:wasm",
+    "build:wasm": "node ./scripts/build-wasm.mjs",
+    "test": "node --test ./test/*.test.mjs",
+    "test:wasm": "node ./test/wasm-e2e.mjs",
+    "check": "node --check ./src/index.js && node --check ./scripts/build-wasm.mjs && node --test ./test/*.test.mjs",
+    "prepack": "npm run build:wasm && npm test"
+  },
+  "keywords": [
+    "bible",
+    "scripture",
+    "search",
+    "wasm",
+    "tip-of-the-tongue"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,26 @@
+[package]
+name = "recall-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "C ABI for verse-recall (cdylib + staticlib)"
+repository.workspace = true
+
+[lib]
+name = "recall_ffi"
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+recall-core = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+recall-pack = { workspace = true }
+
+[build-dependencies]
+# cbindgen is optional at build time; we ship a checked-in header too.
+cbindgen = { version = "0.28", optional = true }
+
+[features]
+default = []
+generate-header = ["cbindgen"]

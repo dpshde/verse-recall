@@ -1,0 +1,25 @@
+{
+  "schema": "verse-recall-query-fixture-v1",
+  "purpose": "revealed-suite compatibility only; not semantic release evidence",
+  "prompts": {
+    "path": "eval/overfit-confirmation-v1.jsonl",
+    "bytes": 8679,
+    "sha256": "0c2e1e3f506d05e39864509dea1acb8ea75b60aadb616d8dbe7fbff2523e9271"
+  },
+  "query_embeddings": {
+    "path": "eval/ci-compatibility-arctic-m256-query.jsonl",
+    "bytes": 239867,
+    "sha256": "401c21894eacbae76de4e0ce904901eecc3e76fda3395c39e52f3ed9cdf94212"
+  },
+  "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+  "generation": {
+    "builder": "scripts/build_semantic_vectors.py queries",
+    "model_sha256": "a18f437b2466863901a0bdc14904cf93246f5ecce0b656fc773bc2b7b2f84f6e",
+    "tokenizer_sha256": "91f1def9b9391fdabe028cd3f3fcc4efd34e5d1f08c3bf2de513ebb5911a1854",
+    "pooling": "cls",
+    "max_length": 128,
+    "truncate_dims": 256,
+    "query_prefix": "Represent this sentence for searching relevant passages: ",
+    "segment_embeddings": true
+  }
+}

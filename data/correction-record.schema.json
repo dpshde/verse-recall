@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://route.bible/schemas/verse-recall/correction-record-v1.json",
+  "title": "Verse Recall reviewed correction record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "id",
+    "claim_surfaces",
+    "correction_label",
+    "anchor_ref",
+    "target_ranges",
+    "source",
+    "review"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "kind": { "const": "correction" },
+    "id": { "$ref": "#/$defs/recordId" },
+    "claim_surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/safeString" }
+    },
+    "correction_label": { "$ref": "#/$defs/safeString" },
+    "anchor_ref": { "$ref": "#/$defs/safeString" },
+    "target_ranges": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/targetRange" }
+    },
+    "source": { "$ref": "#/$defs/source" },
+    "review": { "$ref": "#/$defs/review" }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^\\S(?:.*\\S)?$"
+    },
+    "safeString": {
+      "allOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        { "pattern": "^[^|=]+$" }
+      ]
+    },
+    "recordId": {
+      "allOf": [
+        { "$ref": "#/$defs/safeString" },
+        { "pattern": "^aquifer\\.[1-9][0-9]*$" }
+      ]
+    },
+    "targetRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_ref", "end_ref"],
+      "properties": {
+        "start_ref": { "$ref": "#/$defs/safeString" },
+        "end_ref": { "$ref": "#/$defs/safeString" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset",
+        "table",
+        "row_id",
+        "content_id",
+        "resource_type",
+        "source_ref",
+        "source_url",
+        "revision",
+        "license",
+        "content_sha256",
+        "evidence_excerpt"
+      ],
+      "properties": {
+        "dataset": { "const": "BibleAquifer" },
+        "table": { "const": "aquifer_content" },
+        "row_id": { "type": "integer", "minimum": 1 },
+        "content_id": { "type": "integer", "minimum": 1 },
+        "resource_type": { "$ref": "#/$defs/nonEmptyString" },
+        "source_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "source_url": {
+          "const": "https://github.com/djayatillake/studybible-mcp"
+        },
+        "revision": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "license": { "const": "CC BY-SA 4.0" },
+        "content_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "evidence_excerpt": { "type": "string", "minLength": 20 }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "policy",
+        "reviewed_by",
+        "reviewed_at",
+        "rationale"
+      ],
+      "properties": {
+        "status": { "const": "approved" },
+        "policy": { "const": "source-backed-correction-v1" },
+        "reviewed_by": { "$ref": "#/$defs/safeString" },
+        "reviewed_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "rationale": { "type": "string", "minLength": 20 }
+      }
+    }
+  }
+}

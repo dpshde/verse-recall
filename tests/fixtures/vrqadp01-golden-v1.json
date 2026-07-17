@@ -1,0 +1,8 @@
+{
+  "schema": "verse-recall-vrqadp01-arithmetic-v1",
+  "input_dimensions": 3,
+  "output_dimensions": 2,
+  "embedding": [1.0, 1.0, 1.0],
+  "matrix": [16777216.0, 1.0, 1.0, 2.0, -16777216.0, 3.0],
+  "expected_f32_bits": ["3e285835", "3f7c8450"]
+}

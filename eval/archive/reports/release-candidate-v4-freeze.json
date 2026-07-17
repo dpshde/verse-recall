@@ -1,0 +1,65 @@
+{
+  "schema": "verse-recall-release-candidate-freeze-v1",
+  "candidate": "release-candidate-v4-frozen-pre-holdout",
+  "frozen_date": "2026-07-16",
+  "status": "frozen-before-first-shot-reveal",
+  "query_adapter": null,
+  "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+  "files": [
+    {"role":"release-inventory","path":"data/release-artifacts-v2.json","bytes":1753,"sha256":"1bf3e2a1dd7fe80fde130ac414d0aee0b7898729ab3bb2bc0ddea91783401d33"},
+    {"role":"release-profile","path":"eval/semantic-release-profile-v1.json","bytes":925,"sha256":"74cf937ad861bfd0e1ea78567f5cd2627c2c0a031cd69f6bbed86842cc59994f"},
+    {"role":"canonical-pack","path":"data/bsb-full.pack","bytes":6433344,"sha256":"3782f460405389b0156e6f8e29df6b98e8b13d3118689f9afbca76e88d10b69b"},
+    {"role":"expansion-pack","path":"data/bsb-expand.pack","bytes":5628672,"sha256":"e7b26a3069e19a35f47eb389177cb867ab449f1e1955a8a1ecfdf43045206061"},
+    {"role":"expansion-provenance","path":"data/bsb-expand.provenance.json","bytes":667,"sha256":"2b45a28ad9426f73df4c2aef89501b2fda91dff2326d1059243cd5ccb97befd3"},
+    {"role":"recall-overlay","path":"data/recall-overlay.pack","bytes":7475904,"sha256":"607b71dbe42f96ba47d79cec007ad86a653cd67051a9f105fd39ec812107b676"},
+    {"role":"dense-pack","path":"data/bsb-semantic.pack","bytes":7958272,"sha256":"9551d428dedde6168326e2dcc5c7818abcbd86de8334b9310b6c90a2cc0afd8d"},
+    {"role":"embedding-contract","path":"data/semantic-space-arctic-m-v1.5-m256.json","bytes":677,"sha256":"3742144c4fcba0ec13918788a196f8f796c1b5eae449b125fabbc6f6e5d04813"},
+    {"role":"encoder-model","path":"/private/tmp/arctic-embed-m-v1.5/model_quantized.onnx","bytes":110145162,"sha256":"a18f437b2466863901a0bdc14904cf93246f5ecce0b656fc773bc2b7b2f84f6e"},
+    {"role":"encoder-tokenizer","path":"/private/tmp/arctic-embed-m-v1.5/tokenizer.json","bytes":711649,"sha256":"91f1def9b9391fdabe028cd3f3fcc4efd34e5d1f08c3bf2de513ebb5911a1854"},
+    {"role":"release-evaluator","path":"target/release/recall-eval","bytes":1313280,"sha256":"956f5679289e49de46b381fbd9dd678f1ed89c30776b4b4e52d28ffd6c29d6fc"},
+    {"role":"release-cli","path":"target/release/recall-cli","bytes":1081296,"sha256":"5656255c3943f48ef75fe1487166ac014de58c63dd581e09869b93b2df9d7165"},
+    {"role":"release-packer","path":"target/release/recall-packer","bytes":833088,"sha256":"bfe763200ab1edb60e56beb2b327c4182089bbf6563333c974dbe457a468c233"},
+    {"role":"revealed-regression-summary","path":"eval/release-candidate-v4-revealed-regressions.json","bytes":2695,"sha256":"292a796c9b318e510d98c9c85231a50610e81a7c7ad88b5b1a96cba82686bbb6"},
+    {"role":"reviewed-corrections","path":"data/reviewed-corrections-v2.jsonl","bytes":94769,"sha256":"1a6bc97439a7b9f61c73e2aa48005623568decc4c8107ad025a81eec5ac07aa4"},
+    {"role":"reviewed-corrections-manifest","path":"data/reviewed-corrections-v2.manifest.json","bytes":4695,"sha256":"778ceb5e143c2f2740aaf69a94c4689227be389b74fd54dc4e2d2d420d17e239"},
+    {"role":"overlay-intermediate","path":"/private/tmp/recall-overlay-v2.jsonl","bytes":13496732,"sha256":"f388c56bb1e7744588b89eab4b98e8118ef3adb70aa8ba51366d78974acc61f3"},
+    {"role":"canonical-corpus","path":"data/bsb.jsonl","bytes":4978916,"sha256":"27f91253a045ac4ca4954061408d415c695a4bccd4c5d6d33cfc989ebfb688ac"},
+    {"role":"study-bible-source","path":"/private/tmp/study_bible.db","bytes":679141376,"sha256":"b245186271abf8ae2644e11b98716b83b0728f05704e5358e70c949b8e8beca3"},
+    {"role":"enriched-bsb-source","path":"/Users/user/Developer/selah-tools/labs/conclusions/public/bsb.jsonl","bytes":8223144,"sha256":"c33e8c346a5f442b14b7b20d1ef0d61f8b942a5ca7e2637e7e9338fe5f77c097"},
+    {"role":"selah-topics-source","path":"/Users/user/Developer/selah-tools/apps/exedra-search/data/canonical-topics.browser.json","bytes":226711,"sha256":"97d5c0673f67e84700af48aff51d1e0f0332cc5b82733d30407f0743e5467eb5"},
+    {"role":"selah-topic-rankings-source","path":"/Users/user/Developer/selah-tools/apps/exedra-search/data/topic-verse-rankings.browser.json","bytes":254358,"sha256":"bf775548782c65fa4c02f83b97bfddf0bb440b4a1b8d78d411e147e9762e0117"},
+    {"role":"kjv-source","path":"/Users/user/Developer/selah-tools/apps/route-bible/kjv.jsonl","bytes":8483972,"sha256":"4d532b5596d1696815964707ca497f3c4f21723e8655e6f9b706da959f8470ad"},
+    {"role":"repository-policy","path":"AGENTS.md","bytes":5337,"sha256":"59e034c90de8be818d89a550e4e716132aec5f5b2994f3e87d332d28515fde56"},
+    {"role":"freeze-verifier","path":"scripts/verify_release_candidate_freeze.py","bytes":24022,"sha256":"75efd2ec9b40d74fc819faf76c143dcb3846baa2be3b21402897818b5bfab404"}
+  ],
+  "source_trees": [
+    {"name":"runtime","paths":["Cargo.toml","Cargo.lock","crates/recall-core","crates/recall-pack"],"file_count":33,"sha256":"55dc0ec4c4ee85adfd309b3ae43ac32f17c1e3362392de5e84232b7a54297213"},
+    {"name":"evaluator","paths":["crates/recall-eval"],"file_count":5,"sha256":"dfbba458fce83ffb50054ffd9987d2726f78dfd384e6f5f8bdfa927b5ed283ae"},
+    {"name":"packer","paths":["crates/recall-packer"],"file_count":2,"sha256":"bb0d43a1e45272229b6aa529220ad5981f08be9af4bb29bd88c45418ac2b8578"},
+    {"name":"builders","paths":["scripts/build_recall_overlay.py","scripts/build_semantic_vectors.py","scripts/build_correction_records.py","scripts/ingest_bsb.py","scripts/verify_release_artifacts.py","scripts/verify_reviewed_correction_runtime.py"],"file_count":6,"sha256":"578e9e3fd1f5faaa98af8ce2e94a9d20813b4441d0d7f5e307bab5621784d2a8"},
+    {"name":"portability","paths":["crates/recall-ffi","crates/recall-wasm","bindings/js/package.json","bindings/js/src","bindings/js/test","bindings/js/scripts","bindings/swift/Package.swift","bindings/swift/Sources","bindings/swift/Tests","bindings/swift/scripts","bindings/kotlin/build.gradle.kts","bindings/kotlin/settings.gradle.kts","bindings/kotlin/gradle.properties","bindings/kotlin/scripts","bindings/kotlin/verse-recall/src/main","bindings/kotlin/verse-recall/src/test"],"file_count":42,"sha256":"3079d9e27378c2d7b648e548d198b4fc1f4adedd514511d33b36744a5de40e9d"}
+  ],
+  "sealed_holdout": {
+    "path": "/private/tmp/verse-recall-holdout-v6-sealed-20260716.jsonl",
+    "bytes": 33150,
+    "sha256": "2a647a058e639db46b198e082543cdf47d9ad14c2820c1f4c5f41076316d3946",
+    "split": "holdout-v6",
+    "content_inspected_by_runtime_team": false
+  },
+  "revealed_regression_summary": {
+    "path": "eval/release-candidate-v4-revealed-regressions.json",
+    "sha256": "292a796c9b318e510d98c9c85231a50610e81a7c7ad88b5b1a96cba82686bbb6",
+    "total_prompts": 283,
+    "retrieval_prompts": 264,
+    "recall_at_1": 0.6704545454545454,
+    "recall_at_3": 0.8068181818181818,
+    "recall_at_10": 0.9128787878787878
+  },
+  "integrity_rules": {
+    "runtime_frozen_before_holdout_binding": true,
+    "holdout_content_uninspected_process_assertion": true,
+    "one_shot_reveal_only": true,
+    "retire_immediately_after_report": true,
+    "no_failed_holdout_patching": true
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_correction_manifest",
+  "review_policy": "source-backed-correction-v1",
+  "reviewed_by": "codex-source-review-v2",
+  "reviewed_at": "2026-07-16",
+  "review_scope": "All 442 BibleAquifer explicit-correction candidates and their cited source rows only; no evaluation prompt, result, family, report, attachment, or gold reference was an input",
+  "source": {
+    "dataset": "BibleAquifer",
+    "table": "aquifer_content",
+    "source_url": "https://github.com/djayatillake/studybible-mcp",
+    "license": "CC BY-SA 4.0",
+    "database_sha256": "b245186271abf8ae2644e11b98716b83b0728f05704e5358e70c949b8e8beca3",
+    "input_row_count": 102673
+  },
+  "candidate_artifact": {
+    "name": "aquifer-correction-candidates-v1.jsonl",
+    "sha256": "f5c44667b66bcbd5d14911f9b541b9d56cf459c978fb5ba23d3a103763dde0b2",
+    "byte_count": 679199,
+    "candidate_count": 442
+  },
+  "review_counts": {
+    "retained_v1_record_count": 20,
+    "new_v2_record_count": 26,
+    "approved_record_count": 46,
+    "rejected_candidate_count": 396,
+    "approved_claim_surface_count": 94,
+    "approved_alias_count": 48,
+    "canonical_target_book_count": 21,
+    "by_resource_type": [
+      {
+        "resource_type": "dictionary",
+        "candidate_count": 44,
+        "approved_count": 10,
+        "rejected_count": 34
+      },
+      {
+        "resource_type": "study_notes",
+        "candidate_count": 18,
+        "approved_count": 7,
+        "rejected_count": 11
+      },
+      {
+        "resource_type": "translation_notes_sil",
+        "candidate_count": 354,
+        "approved_count": 24,
+        "rejected_count": 330
+      },
+      {
+        "resource_type": "translation_notes_uw",
+        "candidate_count": 26,
+        "approved_count": 5,
+        "rejected_count": 21
+      }
+    ]
+  },
+  "selection_rule": "Retain a candidate only when its cited source itself identifies a held, traditional, scholarly, or readily asserted claim, explicitly distinguishes that claim from what the text states, supports every normalized claim surface without stronger certainty, and supplies a defensible canonical target.",
+  "rejection_rule": "Reject ordinary unspecified details without an identified claim, unresolved interpretations without a safe text-attribution correction, source claims needing added facts, noncanonical background without a defensible target, and any record that fails identity, hash, schema, reference, or BSB/KJV collision validation.",
+  "approved_record_ids": [
+    "aquifer.4285",
+    "aquifer.6153",
+    "aquifer.11745",
+    "aquifer.12585",
+    "aquifer.13472",
+    "aquifer.13758",
+    "aquifer.14970",
+    "aquifer.16939",
+    "aquifer.18572",
+    "aquifer.18644",
+    "aquifer.19124",
+    "aquifer.19155",
+    "aquifer.20869",
+    "aquifer.21762",
+    "aquifer.22305",
+    "aquifer.22335",
+    "aquifer.22844",
+    "aquifer.24860",
+    "aquifer.36739",
+    "aquifer.39576",
+    "aquifer.49700",
+    "aquifer.90420",
+    "aquifer.93952",
+    "aquifer.94362",
+    "aquifer.95044",
+    "aquifer.95129",
+    "aquifer.95250",
+    "aquifer.95982",
+    "aquifer.96679",
+    "aquifer.96874",
+    "aquifer.96919",
+    "aquifer.97062",
+    "aquifer.97257",
+    "aquifer.97308",
+    "aquifer.97888",
+    "aquifer.97994",
+    "aquifer.98010",
+    "aquifer.98190",
+    "aquifer.98467",
+    "aquifer.99242",
+    "aquifer.99254",
+    "aquifer.99741",
+    "aquifer.100929",
+    "aquifer.101116",
+    "aquifer.101348",
+    "aquifer.101410"
+  ],
+  "corpus": {
+    "path": "data/reviewed-corrections-v2.jsonl",
+    "sha256": "1a6bc97439a7b9f61c73e2aa48005623568decc4c8107ad025a81eec5ac07aa4",
+    "byte_count": 94769,
+    "record_count": 46
+  },
+  "schema": {
+    "path": "data/correction-record.schema.json",
+    "sha256": "ffa1218d7a15214b5cead8e1ce91f5955902324e06eb5e96e91d897958176e62"
+  },
+  "collision_validation": {
+    "canonical_source": "selah-tools/labs/conclusions/public/bsb.jsonl",
+    "canonical_source_sha256": "c33e8c346a5f442b14b7b20d1ef0d61f8b942a5ca7e2637e7e9338fe5f77c097",
+    "canonical_normalized_sha256": "64f4d5187b17334d0ba10e19d63668ec5ede1290f939202bdf8999f19bed9c8a",
+    "alternate_sources": [
+      {
+        "name": "KJV",
+        "path": "selah-tools/apps/route-bible/kjv.jsonl",
+        "source_sha256": "4d532b5596d1696815964707ca497f3c4f21723e8655e6f9b706da959f8470ad",
+        "normalized_sha256": "526cd8a801b981f5e9dc103d974fb5bf115753efd1cf5deb32e954819500a7b1"
+      }
+    ],
+    "omitted_sources": [
+      {
+        "name": "ESV",
+        "reason": "No already-local file with explicit redistribution license was supplied or used."
+      }
+    ],
+    "checked_claim_surface_count": 94,
+    "collision_count": 0
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "base_pack_sha256": "3782f460405389b0156e6f8e29df6b98e8b13d3118689f9afbca76e88d10b69b",
+  "overlay_sha256": [
+    "e7b26a3069e19a35f47eb389177cb867ab449f1e1955a8a1ecfdf43045206061",
+    "607b71dbe42f96ba47d79cec007ad86a653cd67051a9f105fd39ec812107b676",
+    "9551d428dedde6168326e2dcc5c7818abcbd86de8334b9310b6c90a2cc0afd8d"
+  ],
+  "embedding_space_id": "36db5d816aeac4c6f6631619d587d7caea5f829fcddfff51450d60823e58d744",
+  "minimums": {
+    "total_prompts": 80,
+    "retrieval_prompts": 60,
+    "no_gold_prompts": 8,
+    "hard_negative_prompts": 8,
+    "confidence_label_prompts": 4,
+    "structured_passage_prompts": 8,
+    "distinct_families": 70,
+    "distinct_categories": 10,
+    "distinct_target_books": 40
+  },
+  "required_categories": {
+    "meaning-only": 12,
+    "multi-intent": 8,
+    "event-description": 8,
+    "near-quote": 5,
+    "translation-drift": 5,
+    "entity-event": 5
+  }
+}

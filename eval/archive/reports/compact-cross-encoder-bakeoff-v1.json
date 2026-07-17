@@ -1,0 +1,95 @@
+{
+  "schema": "verse-recall-compact-cross-encoder-bakeoff-v1",
+  "status": "rejected",
+  "evidence_role": "revealed-regression-candidate-selection-only",
+  "prompts": 283,
+  "retrieval_prompts": 264,
+  "candidate_depth": 100,
+  "baseline": {
+    "recall_at_1": 0.6666666666666666,
+    "recall_at_3": 0.803030303030303,
+    "recall_at_10": 0.9015151515151515,
+    "mrr": 0.7486541780952994,
+    "confidence_safety": [283, 283],
+    "no_gold_safety": [19, 19],
+    "hard_negatives": [19, 21],
+    "structured_passages": [11, 16],
+    "required_labels": [1, 9]
+  },
+  "candidates": [
+    {
+      "name": "cross-encoder/ms-marco-MiniLM-L6-v2",
+      "license": "Apache-2.0",
+      "artifact_bytes": 23912906,
+      "mean_latency_ms": 282.4113551384725,
+      "p95_latency_ms": 373.5103125189198,
+      "cross_only": {
+        "recall_at_1": 0.6477272727272727,
+        "recall_at_3": 0.7613636363636364,
+        "recall_at_10": 0.8522727272727273,
+        "mrr": 0.7207625167565919,
+        "confidence_safety": [283, 283],
+        "no_gold_safety": [19, 19],
+        "hard_negatives": [18, 21],
+        "structured_passages": [6, 16],
+        "required_labels": [1, 9]
+      },
+      "fixed_rrf60": {
+        "recall_at_1": 0.6590909090909091,
+        "recall_at_3": 0.8068181818181818,
+        "recall_at_10": 0.8787878787878788,
+        "mrr": 0.7436021275975517,
+        "confidence_safety": [283, 283],
+        "no_gold_safety": [19, 19],
+        "hard_negatives": [19, 21],
+        "structured_passages": [7, 16],
+        "required_labels": [1, 9]
+      }
+    },
+    {
+      "name": "cross-encoder/ms-marco-TinyBERT-L2-v2",
+      "license": "Apache-2.0",
+      "artifact_bytes": 5230254,
+      "mean_latency_ms": 22.522567301497435,
+      "p95_latency_ms": 31.943850015522898,
+      "cross_only": {
+        "recall_at_1": 0.5757575757575758,
+        "recall_at_3": 0.7083333333333334,
+        "recall_at_10": 0.821969696969697,
+        "mrr": 0.6592387968383449,
+        "confidence_safety": [283, 283],
+        "no_gold_safety": [19, 19],
+        "hard_negatives": [17, 21],
+        "structured_passages": [5, 16],
+        "required_labels": [1, 9]
+      },
+      "fixed_rrf60": {
+        "recall_at_1": 0.6174242424242424,
+        "recall_at_3": 0.7575757575757576,
+        "recall_at_10": 0.8825757575757576,
+        "mrr": 0.708586854961148,
+        "confidence_safety": [283, 283],
+        "no_gold_safety": [19, 19],
+        "hard_negatives": [17, 21],
+        "structured_passages": [5, 16],
+        "required_labels": [1, 9]
+      }
+    }
+  ],
+  "artifacts": {
+    "candidate_export_sha256": "78d8f18a95b3a3c42b4f4fe4b631a8e48e3c4eb4b56f3fb9e52ff277b7cbdc95",
+    "canonical_bsb_sha256": "27f91253a045ac4ca4954061408d415c695a4bccd4c5d6d33cfc989ebfb688ac",
+    "minilm_onnx_sha256": "3573b6b9593cb2f75987a31815d409ca3dd8808629118fd20451bb1a5d90cec7",
+    "tinybert_onnx_sha256": "7497b40504d425ef6482693039690106dca4f1f8d88fb5c4aedd63e73ed6ef68",
+    "tokenizer_sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+    "minilm_evaluation_sha256": "1a3c2df8605ee2617e3fefdcffc96237bb8cda6c7103b1518f83713e43e0e57c",
+    "tinybert_evaluation_sha256": "71db5aaa5fec3710779b5b3ca88017771bce7a39dee405b72aabf85ce2ebc0ea"
+  },
+  "integrity": {
+    "sealed_holdout_used": false,
+    "contaminated_holdout_used": false,
+    "gold_visible_to_scoring": false,
+    "production_ranking_changed": false,
+    "prompt_specific_logic_added": false
+  }
+}
