@@ -10,6 +10,7 @@ Prerequisites:
 - Rust stable (edition as in workspace `Cargo.toml`)
 - Python 3.11+ (stdlib + `numpy` for some builder tests)
 - Optional: Node for JS/WASM bindings
+- Optional but recommended for faster local Rust builds: [Kache](https://kunobi.ninja/docs/kache/getting-started/installation) via `mise run kache:setup` (`cargo install kache` when Rust is 1.95+, else the mise pin, then `kache init --yes`). Not a `Cargo.toml` dependency. CI wrapping is Relay's `kunobi-ninja/kache-action@v1` follow-up.
 
 ```bash
 # Core tests
