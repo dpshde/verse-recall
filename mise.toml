@@ -1,0 +1,13 @@
+# verse-recall workflows — `mise run <name>` (or `mise run --help`)
+#
+#   kache:setup  local Kache install + init (not part of CI; Relay adds kache-action)
+#
+min_version = "2025.8.0"
+
+[tools]
+# Prebuilt compiler cache. `latest` skips release candidates. CI does not wrap rustc with it.
+"github:kunobi-ninja/kache" = "latest"
+
+[tasks."kache:setup"]
+description = "Install Kache with cargo (else the mise pin), then kache init --yes and kache doctor. Not part of CI."
+run = "./scripts/kache-setup.sh"

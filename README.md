@@ -19,6 +19,8 @@ host owns semantic query encoding.
 
 ## Quick try (checked-in packs)
 
+Optional once per machine for faster Cargo builds: `mise run kache:setup` (installs [Kache](https://kunobi.ninja/docs/kache/getting-started/installation) with `cargo install` or the mise pin, then `kache init --yes`). Not a crate dependency.
+
 ```bash
 cargo build --release -p recall-cli
 cargo run -p recall-cli --release -- search \
